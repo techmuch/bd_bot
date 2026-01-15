@@ -17,12 +17,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var silent bool
+var (
+	silent     bool
+	testPrompt string
+)
 
 func init() {
 	configCmd.AddCommand(initCmd)
 	configCmd.AddCommand(testCmd)
 	initCmd.Flags().BoolVar(&silent, "silent", false, "Generate default config without interactive prompts")
+
+	testCmd.Flags().StringVarP(&testPrompt, "prompt", "p", "Hello! Reply with a single word: 'Connected'.", "Custom prompt to test the LLM")
+
 	rootCmd.AddCommand(configCmd)
 }
 
@@ -52,26 +58,27 @@ var initCmd = &cobra.Command{
 							Title("LLM API Key").
 							Description("API Key for the LLM").
 							Value(&cfg.LLMKey),
-										huh.NewInput().
-											Title("LLM Model").
-											Description("Model name (e.g., gemma3:4b)").
-											Value(&cfg.LLMModel),
-										huh.NewInput().
-											Title("Log Path").
-											Description("Path to log file").
-											Value(&cfg.LogPath),
-										huh.NewSelect[string]().
-											Title("Log Level").
-											Options(
-												huh.NewOption("DEBUG", "DEBUG"),
-												huh.NewOption("INFO", "INFO"),
-												huh.NewOption("WARN", "WARN"),
-												huh.NewOption("ERROR", "ERROR"),
-											).
-											Value(&cfg.LogLevel),
-									),
-								)
-								err := form.Run()
+					huh.NewInput().
+							Title("LLM Model").
+							Description("Model name (e.g., gemma3:4b)").
+							Value(&cfg.LLMModel),
+					huh.NewInput().
+							Title("Log Path").
+							Description("Path to log file").
+							Value(&cfg.LogPath),
+					huh.NewSelect[string]().
+							Title("Log Level").
+							Options(
+								huh.NewOption("DEBUG", "DEBUG"),
+								huh.NewOption("INFO", "INFO"),
+								huh.NewOption("WARN", "WARN"),
+								huh.NewOption("ERROR", "ERROR"),
+							).
+							Value(&cfg.LogLevel),
+				),
+			)
+
+			err := form.Run()
 			if err != nil {
 				fmt.Println("Error running form:", err)
 				os.Exit(1)
@@ -104,13 +111,13 @@ var testCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("Testing connectivity...")
+		fmt.Println("🔍 Testing connectivity...")
 
 		// Test Database
 		testDatabase(cfg.DatabaseURL)
 
 		// Test LLM
-		testLLM(cfg.LLMURL, cfg.LLMKey, cfg.LLMModel)
+		testLLM(cfg.LLMURL, cfg.LLMKey, cfg.LLMModel, testPrompt)
 	},
 }
 
@@ -128,14 +135,14 @@ func testDatabase(url string) {
 		return
 	}
 
-	var result int
-	err = db.QueryRow("SELECT 1").Scan(&result)
+	var version string
+	err = db.QueryRow("SELECT version()").Scan(&version)
 	if err != nil {
 		fmt.Printf("❌ Database query failed: %v\n", err)
 		return
 	}
 
-	fmt.Printf("✅ Database connection successful (Query result: %d)\n", result)
+	fmt.Printf("✅ Database: Connected\n   Info: %s\n", version)
 }
 
 type ChatRequest struct {
@@ -149,40 +156,48 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-func testLLM(url, key, model string) {
+type ChatResponse struct {
+	Choices []struct {
+		Message Message `json:"message"`
+	} `json:"choices"`
+}
+
+func testLLM(url, key, model, prompt string) {
 	client := http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 30 * time.Second, // Increased timeout for actual generation
 	}
 
-	// Prepare request body
+	fmt.Printf("🤖 LLM: Sending prompt to model '%s'...\n", model)
+
 	reqBody := ChatRequest{
 		Model: model,
 		Messages: []Message{
-			{Role: "user", Content: "Hello! Reply with a single word: 'Connected'."},
+			{Role: "user", Content: prompt},
 		},
 		Stream: false,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
-		fmt.Printf("❌ Error marshalling LLM request: %v\n", err)
+		fmt.Printf("❌ LLM: Error marshalling request: %v\n", err)
 		return
 	}
 
 	req, err := http.NewRequest("POST", url+"/chat/completions", bytes.NewBuffer(jsonData))
 	if err != nil {
-		fmt.Printf("❌ LLM request creation failed: %v\n", err)
+		fmt.Printf("❌ LLM: Request creation failed: %v\n", err)
 		return
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	if key != "" {
+	if key != "" && key != "sk-..." {
 		req.Header.Set("Authorization", "Bearer "+key)
 	}
 
+	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("❌ LLM connection failed: %v\n", err)
+		fmt.Printf("❌ LLM: Connection failed: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -190,13 +205,15 @@ func testLLM(url, key, model string) {
 	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		fmt.Printf("✅ LLM connection successful (Model: %s)\n", model)
-		// Optionally print the response content if it's short
-		if len(body) < 500 {
-			fmt.Printf("   Response: %s\n", string(body))
+		var chatResp ChatResponse
+		if err := json.Unmarshal(body, &chatResp); err == nil && len(chatResp.Choices) > 0 {
+			fmt.Printf("✅ LLM: Connected (Time: %v)\n", time.Since(start).Round(time.Millisecond))
+			fmt.Printf("   Response: %s\n", chatResp.Choices[0].Message.Content)
+		} else {
+			fmt.Printf("✅ LLM: Connected (Status: %s)\n   Raw Response: %s\n", resp.Status, string(body))
 		}
 	} else {
-		fmt.Printf("❌ LLM returned status: %s\n", resp.Status)
+		fmt.Printf("❌ LLM: Returned status: %s\n", resp.Status)
 		fmt.Printf("   Body: %s\n", string(body))
 	}
 }
