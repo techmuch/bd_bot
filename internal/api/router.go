@@ -5,12 +5,16 @@ import (
 	"net/http"
 )
 
-func NewRouter(solRepo *repository.SolicitationRepository) *http.ServeMux {
+func NewRouter(solRepo *repository.SolicitationRepository, userRepo *repository.UserRepository) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	handler := &SolicitationHandler{repo: solRepo}
+	solHandler := &SolicitationHandler{repo: solRepo}
+	authHandler := &AuthHandler{repo: userRepo}
 
-	mux.HandleFunc("/api/solicitations", handler.List)
+	mux.HandleFunc("/api/solicitations", solHandler.List)
+	mux.HandleFunc("/api/auth/login", authHandler.Login)
+	mux.HandleFunc("/api/auth/logout", authHandler.Logout)
+	mux.HandleFunc("/api/auth/me", authHandler.Me)
 
 	return mux
 }
