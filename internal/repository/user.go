@@ -71,3 +71,9 @@ func (r *UserRepository) Create(ctx context.Context, email, fullName string) (*U
 	user.Narrative = narrative.String
 	return &user, nil
 }
+
+func (r *UserRepository) UpdateNarrative(ctx context.Context, userID int, narrative string) error {
+	query := `UPDATE users SET narrative = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.ExecContext(ctx, query, narrative, userID)
+	return err
+}
