@@ -144,6 +144,14 @@ func (s *GPRScraper) Scrape(ctx context.Context) ([]scraper.Solicitation, error)
 			sol.URL = fmt.Sprintf("%s?eSourceNumber=%s&sourceSystemType=%s", s.DetailsURL, eSourceNumberKey, sourceId)
 		}
 
+		// Parse Due Date
+		if val, ok := item["closingDateSort"]; ok {
+			if ts, ok := val.(float64); ok {
+				// closingDateSort is in milliseconds
+				sol.DueDate = time.UnixMilli(int64(ts))
+			}
+		}
+
 		// Fetch details for each item
 		if sol.URL != "" {
 			// Add a small delay to be polite

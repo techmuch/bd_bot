@@ -12,6 +12,7 @@
 
 .solicitation-list {
   background: white;
+  color: #333; /* Fix visibility on white background */
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -38,6 +39,7 @@ th {
 td {
   padding: 12px;
   border-bottom: 1px solid #dee2e6;
+  color: #333;
 }
 
 tr:hover {
@@ -61,5 +63,89 @@ tr:hover {
 }
 
 .error {
+
   color: #e74c3c;
+
+}
+
+
+
+.badge {
+
+  background-color: #27ae60;
+
+  color: white;
+
+  padding: 2px 8px;
+
+  border-radius: 12px;
+
+  font-size: 0.8rem;
+
+  font-weight: bold;
+
+}
+
+
+
+.text-muted {
+
+  color: #bdc3c7;
+
+}
+
+
+
+.expanded-row {
+
+  background-color: #fafafa;
+
+}
+
+
+
+.docs-list {
+
+  padding: 1rem;
+
+  text-align: left;
+
+}
+
+
+
+.docs-list ul {
+
+  list-style: none;
+
+  padding: 0;
+
+  margin-top: 0.5rem;
+
+}
+
+
+
+.docs-list li {
+
+  margin-bottom: 0.5rem;
+
+}
+
+
+
+.docs-list a {
+
+  color: #2980b9;
+
+  text-decoration: none;
+
+}
+
+
+
+.docs-list a:hover {
+
+  text-decoration: underline;
+
 }

@@ -3,7 +3,14 @@ export interface Solicitation {
     title: string;
     description: string;
     agency: string;
-    due_date: string; // ISO date string
+    due_date: string;
     url: string;
+    documents: Document[];
     raw_data: any;
+}
+
+export interface Document {
+    title: string;
+    url: string;
+    type: string;
 }

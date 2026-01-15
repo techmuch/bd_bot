@@ -113,3 +113,16 @@ time=2026-01-15T13:43:17.896-05:00 level=INFO msg="Scraper finished" scraper="Ge
 time=2026-01-15T13:43:17.897-05:00 level=INFO msg="Scraper Engine run complete" total_items=50
 time=2026-01-15T13:43:17.897-05:00 level=INFO msg="Saving results to database..."
 time=2026-01-15T13:43:17.971-05:00 level=INFO msg="Scraper run complete" found=50 saved_or_updated=50
+time=2026-01-15T14:57:39.998-05:00 level=INFO msg="Starting server on :8080"
+time=2026-01-15T15:00:01.213-05:00 level=INFO msg="Starting server on :8080"
+time=2026-01-15T15:02:14.269-05:00 level=INFO msg="Launching Midnight Bot (Manual Trigger)"
+time=2026-01-15T15:02:14.271-05:00 level=INFO msg="Starting Scraper Engine" source_count=1
+time=2026-01-15T15:02:14.271-05:00 level=INFO msg="Running scraper" scraper="Georgia Procurement Registry (GPR)"
+time=2026-01-15T15:02:14.271-05:00 level=INFO msg="Starting GPR scrape" url=https://ssl.doas.state.ga.us/gpr/index
+time=2026-01-15T15:02:14.821-05:00 level=INFO msg="GPR Data Received" total_records=483 fetched=50
+time=2026-01-15T15:02:27.787-05:00 level=INFO msg="Scraper finished" scraper="Georgia Procurement Registry (GPR)" items_found=50
+time=2026-01-15T15:02:27.787-05:00 level=INFO msg="Scraper Engine run complete" total_items=50
+time=2026-01-15T15:02:27.788-05:00 level=INFO msg="Saving results to database..."
+time=2026-01-15T15:02:27.860-05:00 level=INFO msg="Scraper run complete" found=50 saved_or_updated=50
+time=2026-01-15T15:02:54.405-05:00 level=INFO msg="Starting server on :8080"
+time=2026-01-15T15:03:42.697-05:00 level=INFO msg="Starting server on :8080"
