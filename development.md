@@ -4,38 +4,89 @@ This document provides a guide for developers working on the BD_Bot project.
 
 ## 1. Local Development Setup
 
-This section should detail the steps required to set up a local development environment. This includes:
+### Prerequisites
+*   **Go:** 1.25.5 or later.
+*   **Node.js & npm:** For frontend development.
+*   **Container Platform:** Either `docker` or the `container` platform (macOS).
+*   **Make:** For build automation.
 
-*   **Prerequisites:** List all the tools and technologies that need to be installed on a developer's machine (e.g., Go, Node.js, PostgreSQL, etc.).
-*   **Installation:** Provide a step-by-step guide on how to clone the repository and install dependencies.
-*   **Configuration:** Explain how to set up the `config.yaml` file for local development, including how to connect to a local PostgreSQL instance and a mock LLM server.
-    *   *Note for macOS (container platform):* If using the `container` platform on macOS, `localhost` may not resolve to the container. Use `container ls` to find the container's IP address (e.g., `192.168.64.2`) and update the `database_url` in `config.yaml` accordingly.
-*   **Running the Application:** Provide commands to run the backend server and frontend application in development mode.
+### Installation
+1.  Clone the repository:
+    ```bash
+    git clone github.com:techmuch/bd_bot.git
+    cd bd_bot
+    ```
+2.  Install dependencies:
+    ```bash
+    make deps
+    ```
+
+### Configuration
+1.  Start the database:
+    ```bash
+    make db-up
+    ```
+2.  Initialize the configuration:
+    ```bash
+    ./bd_bot config init
+    ```
+    *   *Note for macOS (container platform):* Use `container ls` to find the container's IP address (e.g., `192.168.64.2`) and update the `database_url` in `config.yaml` accordingly. Default is set to match common container VM IPs.
+3.  Run migrations:
+    ```bash
+    ./bd_bot migrate up
+    ```
+4.  Test connectivity:
+    ```bash
+    ./bd_bot config test
+    ```
+
+### Running the Application
+*   **Full Stack:** `make run` (Builds web, builds go, and starts the server on `:8080`).
+*   **Scraper Only:** `make scrape` (Triggers a manual run of the midnight bot).
 
 ## 2. Architectural Deep-Dive
 
-This section should provide a more detailed explanation of the project's architecture. This includes:
+### Project Structure
+*   `cmd/bd_bot/`: Entry point for the application.
+*   `internal/api/`: REST API handlers and router.
+*   `internal/cli/`: Cobra command implementations.
+*   `internal/config/`: Configuration loading and structures.
+*   `internal/db/`: Database connection pooling.
+*   `internal/logger/`: Structured logging using `slog` and `lumberjack`.
+*   `internal/repository/`: Data access layer (PostgreSQL).
+*   `internal/scraper/`: Scraper engine and specialized source implementations.
+*   `migrations/`: SQL migration files embedded into the binary.
+*   `web/`: React frontend (Vite + TypeScript).
 
-*   **Backend Architecture:** A detailed breakdown of the Go backend, including the structure of the web server, the role of the CLI and TUI, and how background jobs are managed.
-*   **Frontend Architecture:** A detailed breakdown of the ReactJS frontend, including the component structure, state management, and how it communicates with the backend.
-*   **Database Schema:** A description of the PostgreSQL database schema, including the purpose of each table and the relationships between them.
-*   **LLM Integration:** A detailed explanation of how the application integrates with the internal LLM, including the structure of the API requests and responses.
+### Database Schema
+*   `users`: Identity, roles, and capability narratives.
+*   `solicitations`: Scraped opportunities with metadata and raw source data.
+*   `claims`: Join table tracking user interest and leads on opportunities.
+*   `documents`: Stored as a JSONB column within `solicitations` for flexibility.
+
+### Scraper Engine
+The scraper uses a Strategy Pattern. Each source (like `georgia-gpr`) implements the `Scraper` interface. The `Engine` manages concurrent execution and persistence.
 
 ## 3. Coding Conventions
 
-This section should outline the coding conventions that all developers should follow. This includes:
+### Go Backend
+*   **Style:** Follow standard `gofmt` and `goimports`.
+*   **Logging:** Use the global `slog` logger. Avoid `fmt.Println` for system events.
+*   **Errors:** Wrap errors with context using `%w`.
+*   **Migrations:** Never modify existing migration files. Always create a new one for schema changes.
 
-*   **Go Backend:**
-    *   Code style (e.g., `gofmt`).
-    *   Naming conventions.
-    *   Error handling.
-    *   Testing best practices.
-*   **React Frontend:**
-    *   Code style (e.g., Prettier, ESLint).
-    *   Component structure.
-    *   State management patterns.
-    *   Testing best practices.
-*   **Git Workflow:**
-    *   Branching strategy (e.g., GitFlow).
-    *   Commit message format.
-    *   Pull request process.
+### React Frontend
+*   **Style:** Use Functional Components with Hooks.
+*   **UI Libraries:**
+    *   **Recharts:** For analytics dashboards and histograms.
+    *   **Lucide React:** For consistent iconography.
+*   **Types:** All API responses must have corresponding TypeScript interfaces in `web/src/types`.
+*   **Routing:** Client-side routing is handled by the React app; the Go server is configured to fallback to `index.html` for non-API routes.
+
+### API Endpoints
+*   `GET /api/solicitations`: Returns a JSON list of all solicitations, including metadata and document links.
+
+### Git Workflow
+*   **Commits:** Use descriptive, multi-line commit messages.
+*   **Branches:** Feature-based branching is recommended.
+*   **Push:** Always ensure `make build` passes before pushing.
