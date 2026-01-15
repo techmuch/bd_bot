@@ -54,3 +54,49 @@ func (r *SolicitationRepository) Upsert(ctx context.Context, sol scraper.Solicit
 
 	return err
 }
+
+// List retrieves all solicitations from the database
+func (r *SolicitationRepository) List(ctx context.Context) ([]scraper.Solicitation, error) {
+	query := `
+		SELECT source_id, title, description, agency, due_date, url, raw_data
+		FROM solicitations
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var solicitations []scraper.Solicitation
+	for rows.Next() {
+		var sol scraper.Solicitation
+		var rawData []byte
+		var dueDate sql.NullTime
+
+		if err := rows.Scan(
+			&sol.SourceID,
+			&sol.Title,
+			&sol.Description,
+			&sol.Agency,
+			&dueDate,
+			&sol.URL,
+			&rawData,
+		); err != nil {
+			return nil, err
+		}
+
+		if dueDate.Valid {
+			sol.DueDate = dueDate.Time
+		}
+
+		if err := json.Unmarshal(rawData, &sol.RawData); err != nil {
+			return nil, fmt.Errorf("error unmarshalling raw data: %w", err)
+		}
+
+		solicitations = append(solicitations, sol)
+	}
+
+	return solicitations, rows.Err()
+}

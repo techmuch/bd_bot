@@ -1,9 +1,13 @@
 package cli
 
 import (
+	"bd_bot/internal/api"
+	"bd_bot/internal/config"
+	"bd_bot/internal/db"
+	"bd_bot/internal/repository"
 	"bd_bot/web"
-	"fmt"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -18,17 +22,51 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the BD_Bot web portal",
 	Run: func(cmd *cobra.Command, args []string) {
-		dist, err := fs.Sub(web.DistFS, "dist")
+		cfg, err := config.LoadConfig()
 		if err != nil {
-			fmt.Println("Error accessing embedded files:", err)
+			slog.Error("Error loading config", "error", err)
 			os.Exit(1)
 		}
 
-		http.Handle("/", http.FileServer(http.FS(dist)))
+		// 1. Database
+		database, err := db.Connect(cfg.DatabaseURL)
+		if err != nil {
+			slog.Error("Failed to connect to database", "error", err)
+			os.Exit(1)
+		}
+		defer database.Close()
 
-		fmt.Println("Starting server on :8080...")
-		if err := http.ListenAndServe(":8080", nil); err != nil {
-			fmt.Println("Server error:", err)
+		solRepo := repository.NewSolicitationRepository(database)
+
+		// 2. Router
+		mux := api.NewRouter(solRepo)
+
+		// 3. Frontend
+		dist, err := fs.Sub(web.DistFS, "dist")
+		if err != nil {
+			slog.Error("Error accessing embedded files", "error", err)
+			os.Exit(1)
+		}
+
+		// Serve frontend for all non-API routes
+		// We use a custom handler to support client-side routing (SPA)
+		fsHandler := http.FileServer(http.FS(dist))
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			// Check if file exists in dist
+			f, err := dist.Open(r.URL.Path[1:])
+			if err == nil {
+				defer f.Close()
+				fsHandler.ServeHTTP(w, r)
+				return
+			}
+			// Fallback to index.html for SPA routing
+			r.URL.Path = "/"
+			fsHandler.ServeHTTP(w, r)
+		})
+
+		slog.Info("Starting server on :8080")
+		if err := http.ListenAndServe(":8080", mux); err != nil {
+			slog.Error("Server error", "error", err)
 			os.Exit(1)
 		}
 	},
