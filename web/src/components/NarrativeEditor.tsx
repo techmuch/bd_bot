@@ -45,7 +45,7 @@ const NarrativeEditor: React.FC = () => {
     if (!user) return <div>Please login to edit your narrative.</div>;
 
     return (
-        <div className="narrative-editor" style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+        <div className="solicitation-list narrative-container">
             <h2>Business Capability Narrative</h2>
             <p className="text-muted" style={{marginBottom: '1rem'}}>
                 Describe your company's core competencies, past performance, and value proposition. 
@@ -55,16 +55,7 @@ const NarrativeEditor: React.FC = () => {
             <textarea
                 value={narrative}
                 onChange={(e) => setNarrative(e.target.value)}
-                style={{
-                    width: '100%',
-                    height: '300px',
-                    padding: '1rem',
-                    fontSize: '1rem',
-                    borderRadius: '8px',
-                    border: '1px solid #ddd',
-                    marginBottom: '1rem',
-                    fontFamily: 'inherit'
-                }}
+                className="narrative-textarea"
                 placeholder="e.g., We are a specialized IT consulting firm focused on cloud migration and cybersecurity..."
             />
 

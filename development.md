@@ -44,6 +44,19 @@ This document provides a guide for developers working on the BD_Bot project.
 *   **Full Stack:** `make run` (Builds web, builds go, and starts the server on `:8080`).
 *   **Scraper Only:** `make scrape` (Triggers a manual run of the midnight bot).
 
+### Live Frontend Development (HMR)
+To edit CSS or React components with instant updates (Hot Module Replacement):
+
+1.  **Start Backend:**
+    ```bash
+    make build-go && ./bd_bot serve
+    ```
+2.  **Start Frontend Dev Server:**
+    ```bash
+    cd web && npm run dev
+    ```
+3.  **Open Browser:** Navigate to `http://localhost:5173`. API requests will be proxied to the backend.
+
 ## 2. Architectural Deep-Dive
 
 ### Project Structure
