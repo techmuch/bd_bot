@@ -17,11 +17,17 @@ import (
 func init() {
 	userCmd.AddCommand(userListCmd)
 	userCmd.AddCommand(userCreateCmd)
+	userCmd.AddCommand(userPasswdCmd)
 	
 	userCreateCmd.Flags().StringP("email", "e", "", "User email (required)")
 	userCreateCmd.Flags().StringP("name", "n", "", "Full name (required)")
 	userCreateCmd.MarkFlagRequired("email")
 	userCreateCmd.MarkFlagRequired("name")
+
+	userPasswdCmd.Flags().StringP("email", "e", "", "User email (required)")
+	userPasswdCmd.Flags().StringP("password", "p", "", "New password (required)")
+	userPasswdCmd.MarkFlagRequired("email")
+	userPasswdCmd.MarkFlagRequired("password")
 
 	rootCmd.AddCommand(userCmd)
 }
@@ -29,6 +35,37 @@ func init() {
 var userCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Manage users",
+}
+
+var userPasswdCmd = &cobra.Command{
+	Use:   "passwd",
+	Short: "Set user password",
+	Run: func(cmd *cobra.Command, args []string) {
+		email, _ := cmd.Flags().GetString("email")
+		password, _ := cmd.Flags().GetString("password")
+
+		cfg, _ := config.LoadConfig()
+		database, err := db.Connect(cfg.DatabaseURL)
+		if err != nil {
+			slog.Error("DB connect failed", "error", err)
+			os.Exit(1)
+		}
+		defer database.Close()
+
+		repo := repository.NewUserRepository(database)
+		user, err := repo.FindByEmail(context.Background(), email)
+		if err != nil {
+			slog.Error("User not found", "email", email)
+			os.Exit(1)
+		}
+
+		if err := repo.SetPassword(context.Background(), user.ID, password); err != nil {
+			slog.Error("Failed to set password", "error", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("✅ Password set for user: %s\n", email)
+	},
 }
 
 var userListCmd = &cobra.Command{
