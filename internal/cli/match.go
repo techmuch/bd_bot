@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -23,7 +24,10 @@ var matchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		userID := 1 // Default to 1 for dev
 		if len(args) > 0 {
-			// parse args[0]
+			id, err := strconv.Atoi(args[0])
+			if err == nil {
+				userID = id
+			}
 		}
 
 		cfg, err := config.LoadConfig()
