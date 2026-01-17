@@ -8,7 +8,11 @@ import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-do
 import { LayoutGrid, UserCircle, Inbox } from 'lucide-react'
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="loading">Authenticating...</div>;
+  }
 
   return (
     <div className="app-container">
@@ -43,10 +47,12 @@ function AppContent() {
             )}
           </nav>
 
-                      <LoginButton />
-                    </div>
-                  </div>
-                </header>
+          <div style={{marginLeft: 'auto'}}>
+            <LoginButton />
+          </div>
+        </div>
+        </div>
+      </header>
                 <main>
         <Routes>
           <Route path="/" element={<SolicitationList />} />

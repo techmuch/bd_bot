@@ -288,13 +288,25 @@ tr:hover {
   font-family: monospace; /* Better for editing large text */
 }
 
+/* Badges */
 .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background-color: #27ae60;
   color: white;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: bold;
+  white-space: nowrap; /* Prevent text/icon wrapping */
+  min-width: 40px;
+}
+
+/* Specific column widths */
+th:nth-child(5), td:nth-child(5) {
+  min-width: 80px; /* Give 'Docs' column more space */
+  text-align: center;
 }
 
 .text-muted {
