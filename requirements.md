@@ -71,8 +71,10 @@ The CLI leverages the Charmbracelet ecosystem for a premium administrative exper
     *   Migrations: Handled via the CLI with SQL files embedded in the binary.
     *   Audit Log: Records all user interactions to generate aggregated organizational pursuit statistics.
 *   **Security & Authentication:**
-    *   SSO Integration: Authentication via organizational SSO (SAML/OIDC).
-    *   Open Enrollment: Automatic user provisioning upon first successful login.
+    *   **Dual-Mode Authentication:** Support for both standalone (Email/Password) and SSO (SAML/OIDC) authentication methods.
+    *   **Standalone:** Secure local storage of credentials using industry-standard hashing (bcrypt).
+    *   **SSO Integration:** Authentication via organizational SSO (SAML/OIDC) for enterprise users.
+    *   **Open Enrollment:** Automatic user provisioning upon first successful login (SSO only) or self-registration (Standalone).
 *   **Matching Engine (LLM):**
     *   Internal AI: OpenAI-compatible API connection.
     *   Matching Logic: The LLM processes the free-form user narrative (and any custom instructions/if-then logic therein) to decide on solicitation matches.

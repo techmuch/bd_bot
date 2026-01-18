@@ -5,18 +5,22 @@ import { LogIn, LogOut, User, X } from 'lucide-react';
 export const LoginButton: React.FC = () => {
     const { user, login, logout, isLoading } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
-    const [email, setEmail] = useState("admin@example.com"); // Default for dev
-    const [password, setPassword] = useState("secret123"); // Default for dev
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        setIsSubmitting(true);
         try {
             await login(email, password);
             setIsOpen(false);
         } catch (err: any) {
             setError(err.message || "Invalid email or password");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -107,8 +111,9 @@ export const LoginButton: React.FC = () => {
                                     type="submit" 
                                     className="btn-primary" 
                                     style={{justifyContent: 'center'}}
+                                    disabled={isSubmitting}
                                 >
-                                    Sign In
+                                    {isSubmitting ? "Signing in..." : "Sign In"}
                                 </button>
                             </div>
                         </form>

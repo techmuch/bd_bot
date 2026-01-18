@@ -16,6 +16,7 @@ type AuthHandler struct {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	FullName string `json:"full_name"`
+	Password string `json:"password"`
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +38,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.repo.FindByEmail(r.Context(), req.Email)
 	if err != nil {
-		// Create if not exists (Auto-provisioning logic)
+		// User not found
+		// If password provided, return error (don't auto-create with password via login)
+		if req.Password != "" {
+			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			return
+		}
+
+		// Auto-provisioning (Mock SSO flow)
 		if req.FullName == "" {
 			req.FullName = "New User"
 		}
@@ -46,7 +54,20 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error creating user: %v", err), http.StatusInternalServerError)
 			return
 		}
+	} else {
+		// User found
+		if req.Password != "" {
+			// Validate password
+			if !h.repo.VerifyPassword(r.Context(), user, req.Password) {
+				http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+				return
+			}
+		}
+		// If no password provided, allow Mock SSO login (unless we enforce passwords later)
 	}
+
+	// Update Activity
+	h.repo.UpdateLastActive(r.Context(), user.ID)
 
 	// Set Mock Session Cookie
 	http.SetCookie(w, &http.Cookie{

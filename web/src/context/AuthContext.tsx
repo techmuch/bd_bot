@@ -41,24 +41,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     const login = async (email: string, password?: string) => {
-        setIsLoading(true);
-        try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-            
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || "Login failed");
-            }
-            
-            const userData = await res.json();
-            setUser(userData);
-        } finally {
-            setIsLoading(false);
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || "Login failed");
         }
+        
+        const userData = await res.json();
+        setUser(userData);
     };
 
     const logout = async () => {

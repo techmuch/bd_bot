@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -15,6 +17,8 @@ type User struct {
 	Narrative    string    `json:"narrative"`
 	CreatedAt    time.Time `json:"created_at"`
 	LastActiveAt time.Time `json:"last_active_at"`
+	PasswordHash string    `json:"-"` // Internal use only
+	AuthProvider string    `json:"auth_provider"`
 }
 
 type UserRepository struct {
@@ -26,31 +30,60 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at FROM users WHERE email = $1`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider FROM users WHERE email = $1`
 	row := r.db.QueryRowContext(ctx, query, email)
 
 	var user User
-	// Narrative might be null
 	var narrative sql.NullString
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt)
+	var passwordHash sql.NullString
+	var authProvider sql.NullString
+
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider)
 	if err != nil {
 		return nil, err
 	}
 	user.Narrative = narrative.String
+	user.PasswordHash = passwordHash.String
+	user.AuthProvider = authProvider.String
 	return &user, nil
 }
 
+// SetPassword hashes and updates the user's password
+func (r *UserRepository) SetPassword(ctx context.Context, userID int, password string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	query := `UPDATE users SET password_hash = $1, auth_provider = 'local', updated_at = NOW() WHERE id = $2`
+	_, err = r.db.ExecContext(ctx, query, string(hash), userID)
+	return err
+}
+
+// VerifyPassword checks if the password matches the hash
+func (r *UserRepository) VerifyPassword(ctx context.Context, user *User, password string) bool {
+	if user.AuthProvider != "local" || user.PasswordHash == "" {
+		return false // Only local users have passwords
+	}
+	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	return err == nil
+}
+
 func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at FROM users WHERE id = $1`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider FROM users WHERE id = $1`
 	row := r.db.QueryRowContext(ctx, query, id)
 
 	var user User
 	var narrative sql.NullString
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt)
+	var passwordHash sql.NullString
+	var authProvider sql.NullString
+
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider)
 	if err != nil {
 		return nil, err
 	}
 	user.Narrative = narrative.String
+	user.PasswordHash = passwordHash.String
+	user.AuthProvider = authProvider.String
 	return &user, nil
 }
 
