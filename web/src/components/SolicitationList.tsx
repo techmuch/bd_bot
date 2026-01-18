@@ -155,11 +155,11 @@ const SolicitationList: React.FC = () => {
                                                     <User size={12} /> Lead: {sol.lead_name}
                                                 </div>
                                             )}
-                                            {sol.interested_count ? (
+                                            {sol.interested_parties && (
                                                 <div style={{fontSize: '0.8rem', color: '#3498db', display: 'flex', alignItems: 'center', gap: '4px'}}>
-                                                    <Users size={12} /> {sol.interested_count} Interested
+                                                    <Users size={12} /> Interested: {sol.interested_parties}
                                                 </div>
-                                            ) : null}
+                                            )}
                                         </div>
                                     </td>
                                     <td>{sol.due_date === "0001-01-01T00:00:00Z" ? "N/A" : new Date(sol.due_date).toLocaleDateString()}</td>

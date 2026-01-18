@@ -82,7 +82,7 @@ func (r *SolicitationRepository) List(ctx context.Context) ([]scraper.Solicitati
 	query := `
 		SELECT s.id, s.source_id, s.title, s.description, s.agency, s.due_date, s.url, s.raw_data, s.documents,
 		(SELECT u.full_name FROM claims c JOIN users u ON c.user_id = u.id WHERE c.solicitation_id = s.id AND c.claim_type = 'lead' LIMIT 1),
-		(SELECT COUNT(*) FROM claims c WHERE c.solicitation_id = s.id AND c.claim_type = 'interested')
+		(SELECT STRING_AGG(u.full_name, ', ') FROM claims c JOIN users u ON c.user_id = u.id WHERE c.solicitation_id = s.id AND c.claim_type = 'interested')
 		FROM solicitations s
 		ORDER BY s.created_at DESC
 	`
@@ -100,7 +100,7 @@ func (r *SolicitationRepository) List(ctx context.Context) ([]scraper.Solicitati
 		var docsData []byte
 		var dueDate sql.NullTime
 		var leadName sql.NullString
-		var interestedCount int
+		var interestedParties sql.NullString
 
 		if err := rows.Scan(
 			&sol.ID,
@@ -113,7 +113,7 @@ func (r *SolicitationRepository) List(ctx context.Context) ([]scraper.Solicitati
 			&rawData,
 			&docsData,
 			&leadName,
-			&interestedCount,
+			&interestedParties,
 		); err != nil {
 			return nil, err
 		}
@@ -125,7 +125,10 @@ func (r *SolicitationRepository) List(ctx context.Context) ([]scraper.Solicitati
 			name := leadName.String
 			sol.LeadName = &name
 		}
-		sol.InterestedCount = interestedCount
+		if interestedParties.Valid {
+			names := interestedParties.String
+			sol.InterestedParties = &names
+		}
 
 		if err := json.Unmarshal(rawData, &sol.RawData); err != nil {
 			return nil, fmt.Errorf("error unmarshalling raw data: %w", err)

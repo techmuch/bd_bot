@@ -178,11 +178,11 @@ const PersonalInbox: React.FC = () => {
                                                     <User size={12} /> Lead: {match.solicitation.lead_name}
                                                 </div>
                                             )}
-                                            {match.solicitation.interested_count ? (
+                                            {match.solicitation.interested_parties && (
                                                 <div style={{fontSize: '0.8rem', color: '#3498db', display: 'flex', alignItems: 'center', gap: '4px'}}>
-                                                    <Users size={12} /> {match.solicitation.interested_count} Interested
+                                                    <Users size={12} /> Interested: {match.solicitation.interested_parties}
                                                 </div>
-                                            ) : null}
+                                            )}
                                         </div>
                                     </td>
                                     <td>
