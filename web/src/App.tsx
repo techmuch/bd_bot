@@ -1,12 +1,11 @@
 import './App.css'
 import SolicitationList from './components/SolicitationList'
-import NarrativeEditor from './components/NarrativeEditor'
 import PersonalInbox from './components/PersonalInbox'
 import UserProfile from './components/UserProfile'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LoginButton } from './components/LoginButton'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import { LayoutGrid, UserCircle, Inbox } from 'lucide-react'
+import { LayoutGrid, Inbox } from 'lucide-react'
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -38,12 +37,6 @@ function AppContent() {
                 >
                   <Inbox size={16} /> Inbox
                 </NavLink>
-                <NavLink 
-                  to="/narrative"
-                  className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-                >
-                  <UserCircle size={16} /> Narrative
-                </NavLink>
               </>
             )}
           </nav>
@@ -58,7 +51,6 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<SolicitationList />} />
           <Route path="/inbox" element={user ? <PersonalInbox /> : <Navigate to="/" />} />
-          <Route path="/narrative" element={user ? <NarrativeEditor /> : <Navigate to="/" />} />
           <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/" />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

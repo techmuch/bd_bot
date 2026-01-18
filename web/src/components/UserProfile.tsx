@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Lock, Save, Camera } from 'lucide-react';
+import { User, Lock, Save, Camera, FileText } from 'lucide-react';
 
 const UserProfile: React.FC = () => {
     const { user, refreshUser } = useAuth();
@@ -19,7 +19,21 @@ const UserProfile: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordStatus, setPasswordStatus] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
     
+    // Narrative State
+    const [narrative, setNarrative] = useState(user?.narrative || "");
+    const [narrativeSaving, setNarrativeSaving] = useState(false);
+    const [narrativeMessage, setNarrativeMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            setFullName(user.full_name || "");
+            setEmail(user.email || "");
+            setAvatarPreview(user.avatar_url || null);
+            setNarrative(user.narrative || "");
+        }
+    }, [user]);
 
     if (!user) return <div>Please login to view profile.</div>;
 
@@ -107,13 +121,35 @@ const UserProfile: React.FC = () => {
         }
     };
 
+    const handleNarrativeSave = async () => {
+        setNarrativeSaving(true);
+        setNarrativeMessage(null);
+
+        try {
+            const res = await fetch('/api/user/narrative', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ narrative }),
+            });
+
+            if (!res.ok) throw new Error("Failed to save narrative");
+
+            setNarrativeMessage({ text: "Narrative saved successfully!", type: 'success' });
+            await refreshUser();
+        } catch (err) {
+            setNarrativeMessage({ text: "Error saving narrative.", type: 'error' });
+        } finally {
+            setNarrativeSaving(false);
+        }
+    };
+
     return (
         <div className="solicitation-list" style={{maxWidth: '900px', margin: '0 auto'}}>
             <div style={{borderBottom: '1px solid #eee', paddingBottom: '1rem', marginBottom: '2rem'}}>
-                <h2>User Profile</h2>
+                <h2>User Profile & Settings</h2>
             </div>
 
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem'}}>
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem'}}>
                 
                 {/* --- Profile Info & Avatar --- */}
                 <div className="chart-card">
@@ -267,6 +303,47 @@ const UserProfile: React.FC = () => {
                             <Lock size={18} /> Update Password
                         </button>
                     </form>
+                </div>
+            </div>
+
+            {/* --- Narrative Editor --- */}
+            <div className="chart-card" style={{padding: '2rem'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem'}}>
+                    <FileText size={20} color="#34495e" />
+                    <h3 style={{margin: 0, color: '#34495e'}}>Business Capability Narrative</h3>
+                </div>
+                
+                <p className="text-muted" style={{marginBottom: '1.5rem', lineHeight: '1.5'}}>
+                    Describe your organization's core competencies, past performance, and value proposition. 
+                    The AI will use this narrative to find the best matching opportunities for you.
+                </p>
+                
+                <textarea
+                    value={narrative}
+                    onChange={(e) => setNarrative(e.target.value)}
+                    className="narrative-textarea"
+                    placeholder="e.g., We are a specialized IT consulting firm focused on cloud migration and cybersecurity..."
+                    style={{height: '400px'}} 
+                />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                    <button 
+                        onClick={handleNarrativeSave} 
+                        className="btn-primary" 
+                        disabled={narrativeSaving}
+                        style={{width: 'auto'}}
+                    >
+                        <Save size={18} /> {narrativeSaving ? "Saving..." : "Save Narrative"}
+                    </button>
+                    
+                    {narrativeMessage && (
+                        <span style={{ 
+                            color: narrativeMessage.type === 'success' ? '#27ae60' : '#e74c3c',
+                            fontWeight: 500
+                        }}>
+                            {narrativeMessage.text}
+                        </span>
+                    )}
                 </div>
             </div>
         </div>
