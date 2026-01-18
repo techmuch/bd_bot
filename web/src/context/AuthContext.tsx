@@ -9,6 +9,7 @@ interface User {
     narrative: string;
     auth_provider?: string;
     avatar_url?: string;
+    organization_name?: string;
 }
 
 interface AuthContextType {

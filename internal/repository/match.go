@@ -34,7 +34,8 @@ func (r *MatchRepository) GetUserInbox(ctx context.Context, userID int) ([]Match
 	query := `
 		SELECT 
 			m.id, m.score, m.explanation,
-			s.id, s.source_id, s.title, s.description, s.agency, s.due_date, s.url, s.raw_data, s.documents
+			s.id, s.source_id, s.title, s.description, s.agency, s.due_date, s.url, s.raw_data, s.documents,
+			(SELECT u.full_name FROM claims c JOIN users u ON c.user_id = u.id WHERE c.solicitation_id = s.id AND c.claim_type = 'lead' LIMIT 1)
 		FROM matches m
 		JOIN solicitations s ON m.solicitation_id = s.id
 		WHERE m.user_id = $1 AND m.score > 0
@@ -52,18 +53,23 @@ func (r *MatchRepository) GetUserInbox(ctx context.Context, userID int) ([]Match
 		var rawData []byte
 		var docsData []byte
 		var dueDate sql.NullTime
+		var leadName sql.NullString
 
 		if err := rows.Scan(
 			&ms.MatchID, &ms.Score, &ms.Explanation,
 			&ms.Solicitation.ID, &ms.Solicitation.SourceID, &ms.Solicitation.Title, 
 			&ms.Solicitation.Description, &ms.Solicitation.Agency, &dueDate, 
-			&ms.Solicitation.URL, &rawData, &docsData,
+			&ms.Solicitation.URL, &rawData, &docsData, &leadName,
 		); err != nil {
 			return nil, err
 		}
 
 		if dueDate.Valid {
 			ms.Solicitation.DueDate = dueDate.Time
+		}
+		if leadName.Valid {
+			name := leadName.String
+			ms.Solicitation.LeadName = &name
 		}
 		json.Unmarshal(rawData, &ms.Solicitation.RawData)
 		if len(docsData) > 0 {

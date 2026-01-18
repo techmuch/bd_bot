@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS organizations (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
+);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS organization_name TEXT;

@@ -2,6 +2,7 @@ import './App.css'
 import SolicitationList from './components/SolicitationList'
 import PersonalInbox from './components/PersonalInbox'
 import UserProfile from './components/UserProfile'
+import SolicitationDetail from './components/SolicitationDetail'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LoginButton } from './components/LoginButton'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
@@ -50,6 +51,7 @@ function AppContent() {
       <main>
         <Routes>
           <Route path="/" element={<SolicitationList />} />
+          <Route path="/solicitation/:id" element={<SolicitationDetail />} />
           <Route path="/inbox" element={user ? <PersonalInbox /> : <Navigate to="/" />} />
           <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/" />} />
           <Route path="*" element={<Navigate to="/" />} />

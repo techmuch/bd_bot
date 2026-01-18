@@ -20,6 +20,7 @@ type User struct {
 	PasswordHash string    `json:"-"` // Internal use only
 	AuthProvider string    `json:"auth_provider"`
 	AvatarURL    string    `json:"avatar_url"`
+	Organization string    `json:"organization_name"`
 }
 
 type UserRepository struct {
@@ -31,7 +32,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url FROM users WHERE email = $1`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url, organization_name FROM users WHERE email = $1`
 	row := r.db.QueryRowContext(ctx, query, email)
 
 	var user User
@@ -39,8 +40,9 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 	var passwordHash sql.NullString
 	var authProvider sql.NullString
 	var avatarURL sql.NullString
+	var orgName sql.NullString
 
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL)
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL, &orgName)
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +50,12 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 	user.PasswordHash = passwordHash.String
 	user.AuthProvider = authProvider.String
 	user.AvatarURL = avatarURL.String
+	user.Organization = orgName.String
 	return &user, nil
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url FROM users WHERE id = $1`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url, organization_name FROM users WHERE id = $1`
 	row := r.db.QueryRowContext(ctx, query, id)
 
 	var user User
@@ -60,8 +63,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
 	var passwordHash sql.NullString
 	var authProvider sql.NullString
 	var avatarURL sql.NullString
+	var orgName sql.NullString
 
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL)
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL, &orgName)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +73,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
 	user.PasswordHash = passwordHash.String
 	user.AuthProvider = authProvider.String
 	user.AvatarURL = avatarURL.String
+	user.Organization = orgName.String
 	return &user, nil
 }
 
@@ -76,18 +81,21 @@ func (r *UserRepository) Create(ctx context.Context, email, fullName string) (*U
 	query := `
 		INSERT INTO users (email, full_name, role, created_at, updated_at, last_active_at)
 		VALUES ($1, $2, 'user', NOW(), NOW(), NOW())
-		RETURNING id, email, full_name, role, narrative, created_at, last_active_at
+		RETURNING id, email, full_name, role, narrative, created_at, last_active_at, organization_name
 	`
 	row := r.db.QueryRowContext(ctx, query, email, fullName)
 
 	var user User
 	// Narrative might be null in DB, handling it as empty string
 	var narrative sql.NullString
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt)
+	var orgName sql.NullString
+	
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &orgName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 	user.Narrative = narrative.String
+	user.Organization = orgName.String
 	return &user, nil
 }
 
@@ -103,14 +111,22 @@ func (r *UserRepository) UpdateNarrative(ctx context.Context, userID int, narrat
 	return err
 }
 
-func (r *UserRepository) UpdateProfile(ctx context.Context, userID int, email, fullName, avatarURL string) error {
-	query := `UPDATE users SET email = $1, full_name = $2, avatar_url = $3, updated_at = NOW() WHERE id = $4`
-	_, err := r.db.ExecContext(ctx, query, email, fullName, avatarURL, userID)
+func (r *UserRepository) UpdateProfile(ctx context.Context, userID int, email, fullName, avatarURL, orgName string) error {
+	if orgName != "" {
+		// Auto-add to organizations table
+		_, err := r.db.ExecContext(ctx, "INSERT INTO organizations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", orgName)
+		if err != nil {
+			return fmt.Errorf("failed to sync organization: %w", err)
+		}
+	}
+
+	query := `UPDATE users SET email = $1, full_name = $2, avatar_url = $3, organization_name = $4, updated_at = NOW() WHERE id = $5`
+	_, err := r.db.ExecContext(ctx, query, email, fullName, avatarURL, orgName, userID)
 	return err
 }
 
 func (r *UserRepository) List(ctx context.Context) ([]User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at FROM users ORDER BY id ASC`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, organization_name FROM users ORDER BY id ASC`
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -121,10 +137,12 @@ func (r *UserRepository) List(ctx context.Context) ([]User, error) {
 	for rows.Next() {
 		var u User
 		var narrative sql.NullString
-		if err := rows.Scan(&u.ID, &u.Email, &u.FullName, &u.Role, &narrative, &u.CreatedAt, &u.LastActiveAt); err != nil {
+		var orgName sql.NullString
+		if err := rows.Scan(&u.ID, &u.Email, &u.FullName, &u.Role, &narrative, &u.CreatedAt, &u.LastActiveAt, &orgName); err != nil {
 			return nil, err
 		}
 		u.Narrative = narrative.String
+		u.Organization = orgName.String
 		users = append(users, u)
 	}
 	return users, rows.Err()
@@ -162,4 +180,23 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, userID int, oldPass
 	}
 
 	return r.SetPassword(ctx, userID, newPassword)
+}
+
+// GetOrganizations returns unique organization names
+func (r *UserRepository) GetOrganizations(ctx context.Context) ([]string, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT name FROM organizations ORDER BY name ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orgs []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		orgs = append(orgs, name)
+	}
+	return orgs, nil
 }

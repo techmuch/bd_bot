@@ -1,7 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import type { Match, Solicitation } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { ChevronDown, ChevronRight, ExternalLink, FileText, Sparkles, ArrowUpDown } from 'lucide-react';
+import { 
+    ChevronDown, 
+    ChevronRight, 
+    ExternalLink, 
+    FileText, 
+    Sparkles, 
+    ArrowUpDown,
+    User 
+} from 'lucide-react';
 import { useAnalytics, getDaysRemaining, getDateBucket } from '../hooks/useAnalytics';
 import DashboardCharts from './DashboardCharts';
 import FilterControls from './FilterControls';
@@ -158,7 +167,16 @@ const PersonalInbox: React.FC = () => {
                                         </span>
                                     </td>
                                     <td>{match.solicitation.agency}</td>
-                                    <td>{match.solicitation.title}</td>
+                                    <td>
+                                        <Link to={`/solicitation/${match.solicitation.source_id}`} style={{fontWeight: 500, color: '#2c3e50', textDecoration: 'none'}}>
+                                            {match.solicitation.title}
+                                        </Link>
+                                        {match.solicitation.lead_name && (
+                                            <div style={{fontSize: '0.8rem', color: '#e67e22', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px'}}>
+                                                <User size={12} /> Lead: {match.solicitation.lead_name}
+                                            </div>
+                                        )}
+                                    </td>
                                     <td>
                                         <div style={{
                                             maxWidth: '400px', 

@@ -13,15 +13,24 @@ func NewRouter(solRepo *repository.SolicitationRepository, userRepo *repository.
 	userHandler := &UserHandler{repo: userRepo}
 	matchHandler := &MatchHandler{repo: matchRepo}
 
-	mux.HandleFunc("/api/solicitations", solHandler.List)
-	mux.HandleFunc("/api/matches", matchHandler.List)
-	mux.HandleFunc("/api/auth/login", authHandler.Login)
-	mux.HandleFunc("/api/auth/logout", authHandler.Logout)
-	mux.HandleFunc("/api/auth/me", authHandler.Me)
-	mux.HandleFunc("/api/auth/password", AuthMiddleware(authHandler.ChangePassword))
-	mux.HandleFunc("/api/user/narrative", AuthMiddleware(userHandler.UpdateNarrative))
-	mux.HandleFunc("/api/user/profile", AuthMiddleware(userHandler.UpdateProfile))
-	mux.HandleFunc("/api/user/avatar", AuthMiddleware(userHandler.UploadAvatar))
+	// Solicitations
+	mux.HandleFunc("GET /api/solicitations", solHandler.List)
+	mux.HandleFunc("GET /api/solicitations/{id}", solHandler.Get)
+	mux.HandleFunc("POST /api/solicitations/{id}/claim", AuthMiddleware(solHandler.Claim))
+
+	// Matches
+	mux.HandleFunc("GET /api/matches", matchHandler.List)
+
+	// Auth & User
+	mux.HandleFunc("POST /api/auth/login", authHandler.Login)
+	mux.HandleFunc("POST /api/auth/logout", authHandler.Logout)
+	mux.HandleFunc("GET /api/auth/me", authHandler.Me)
+	mux.HandleFunc("POST /api/auth/password", AuthMiddleware(authHandler.ChangePassword))
+	
+	mux.HandleFunc("PUT /api/user/narrative", AuthMiddleware(userHandler.UpdateNarrative))
+	mux.HandleFunc("PUT /api/user/profile", AuthMiddleware(userHandler.UpdateProfile))
+	mux.HandleFunc("POST /api/user/avatar", AuthMiddleware(userHandler.UploadAvatar))
+	mux.HandleFunc("GET /api/organizations", AuthMiddleware(userHandler.ListOrganizations))
 
 	// Serve uploaded files
 	fs := http.FileServer(http.Dir("uploads"))

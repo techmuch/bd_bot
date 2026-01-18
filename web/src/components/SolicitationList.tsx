@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import type { Solicitation } from '../types';
 import { 
     ChevronDown, 
     ChevronRight, 
     ExternalLink, 
     FileText, 
-    ArrowUpDown
+    ArrowUpDown,
+    User
 } from 'lucide-react';
 import { useAnalytics, getDaysRemaining, getDateBucket } from '../hooks/useAnalytics';
 import DashboardCharts from './DashboardCharts';
@@ -142,7 +144,16 @@ const SolicitationList: React.FC = () => {
                                         {expandedRow === sol.source_id ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                                     </td>
                                     <td>{sol.agency}</td>
-                                    <td>{sol.title}</td>
+                                    <td>
+                                        <Link to={`/solicitation/${sol.source_id}`} style={{fontWeight: 500, color: '#2c3e50', textDecoration: 'none'}}>
+                                            {sol.title}
+                                        </Link>
+                                        {sol.lead_name && (
+                                            <div style={{fontSize: '0.8rem', color: '#e67e22', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px'}}>
+                                                <User size={12} /> Lead: {sol.lead_name}
+                                            </div>
+                                        )}
+                                    </td>
                                     <td>{sol.due_date === "0001-01-01T00:00:00Z" ? "N/A" : new Date(sol.due_date).toLocaleDateString()}</td>
                                     <td>
                                         {sol.documents?.length > 0 ? (

@@ -8,6 +8,9 @@ const UserProfile: React.FC = () => {
     // Profile State
     const [fullName, setFullName] = useState(user?.full_name || "");
     const [email, setEmail] = useState(user?.email || "");
+    const [orgName, setOrgName] = useState(user?.organization_name || "");
+    const [orgSuggestions, setOrgSuggestions] = useState<string[]>([]);
+    
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar_url || null);
     const [profileStatus, setProfileStatus] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
@@ -30,9 +33,16 @@ const UserProfile: React.FC = () => {
         if (user) {
             setFullName(user.full_name || "");
             setEmail(user.email || "");
+            setOrgName(user.organization_name || "");
             setAvatarPreview(user.avatar_url || null);
             setNarrative(user.narrative || "");
         }
+        
+        // Fetch orgs
+        fetch('/api/organizations')
+            .then(res => res.json())
+            .then(data => setOrgSuggestions(data || []))
+            .catch(console.error);
     }, [user]);
 
     if (!user) return <div>Please login to view profile.</div>;
@@ -70,7 +80,8 @@ const UserProfile: React.FC = () => {
                 body: JSON.stringify({ 
                     email: email, 
                     full_name: fullName, 
-                    avatar_url: avatarUrl 
+                    avatar_url: avatarUrl,
+                    organization_name: orgName
                 }),
             });
 
@@ -198,6 +209,22 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         {/* Fields */}
+                        <div style={{marginBottom: '1rem'}}>
+                            <label style={{display: 'block', marginBottom: '0.5rem'}}>Organization</label>
+                            <input 
+                                type="text" 
+                                className="search-input"
+                                style={{border: '1px solid #ddd', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                value={orgName}
+                                onChange={(e) => setOrgName(e.target.value)}
+                                list="org-suggestions"
+                                placeholder="Type or select your organization"
+                            />
+                            <datalist id="org-suggestions">
+                                {orgSuggestions.map((org, i) => <option key={i} value={org} />)}
+                            </datalist>
+                        </div>
+
                         <div style={{marginBottom: '1rem'}}>
                             <label style={{display: 'block', marginBottom: '0.5rem'}}>Full Name</label>
                             <input 

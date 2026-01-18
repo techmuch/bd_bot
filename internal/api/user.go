@@ -41,9 +41,10 @@ func (h *UserHandler) UpdateNarrative(w http.ResponseWriter, r *http.Request) {
 }
 
 type UpdateProfileRequest struct {
-	Email     string `json:"email"`
-	FullName  string `json:"full_name"`
-	AvatarURL string `json:"avatar_url"`
+	Email        string `json:"email"`
+	FullName     string `json:"full_name"`
+	AvatarURL    string `json:"avatar_url"`
+	Organization string `json:"organization_name"`
 }
 
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
@@ -64,13 +65,23 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.repo.UpdateProfile(r.Context(), userID, req.Email, req.FullName, req.AvatarURL); err != nil {
+	if err := h.repo.UpdateProfile(r.Context(), userID, req.Email, req.FullName, req.AvatarURL, req.Organization); err != nil {
 		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"message": "Profile updated successfully"}`))
+}
+
+func (h *UserHandler) ListOrganizations(w http.ResponseWriter, r *http.Request) {
+	orgs, err := h.repo.GetOrganizations(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to fetch organizations", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(orgs)
 }
 
 func (h *UserHandler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
