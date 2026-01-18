@@ -66,10 +66,11 @@ const SolicitationDetail: React.FC = () => {
     if (loading) return <div className="loading">Loading details...</div>;
     if (error || !solicitation) return <div className="error">Error: {error || "Solicitation not found"}</div>;
 
-    const leadClaim = solicitation.claims.find(c => c.claim_type === 'lead');
-    const interestedClaims = solicitation.claims.filter(c => c.claim_type === 'interested');
+    const claims = solicitation.claims || [];
+    const leadClaim = claims.find(c => c.claim_type === 'lead');
+    const interestedClaims = claims.filter(c => c.claim_type === 'interested');
     
-    const myClaim = solicitation.claims.find(c => c.user_id === user?.id);
+    const myClaim = claims.find(c => c.user_id === user?.id);
     const isLead = myClaim?.claim_type === 'lead';
     const isInterested = myClaim?.claim_type === 'interested';
 

@@ -193,7 +193,7 @@ func (r *SolicitationRepository) GetByID(ctx context.Context, idStr string) (*So
 	}
 	defer rows.Close()
 
-	var claims []Claim
+	claims := []Claim{}
 	for rows.Next() {
 		var c Claim
 		var u User
