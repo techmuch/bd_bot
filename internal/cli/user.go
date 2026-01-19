@@ -5,6 +5,7 @@ import (
 	"bd_bot/internal/db"
 	"bd_bot/internal/repository"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -19,6 +20,8 @@ func init() {
 	userCmd.AddCommand(userCreateCmd)
 	userCmd.AddCommand(userPasswdCmd)
 	
+	userListCmd.Flags().Bool("json", false, "Output in JSON format")
+
 	userCreateCmd.Flags().StringP("email", "e", "", "User email (required)")
 	userCreateCmd.Flags().StringP("name", "n", "", "Full name (required)")
 	userCreateCmd.MarkFlagRequired("email")
@@ -85,6 +88,16 @@ var userListCmd = &cobra.Command{
 		if err != nil {
 			slog.Error("Failed to list users", "error", err)
 			os.Exit(1)
+		}
+
+		if jsonOutput, _ := cmd.Flags().GetBool("json"); jsonOutput {
+			encoder := json.NewEncoder(os.Stdout)
+			encoder.SetIndent("", "  ")
+			if err := encoder.Encode(users); err != nil {
+				slog.Error("Failed to encode JSON", "error", err)
+				os.Exit(1)
+			}
+			return
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)

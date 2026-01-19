@@ -5,6 +5,7 @@ import (
 	"bd_bot/internal/db"
 	"bd_bot/internal/repository"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -18,6 +19,7 @@ func init() {
 	rootCmd.AddCommand(orgCmd)
 
 	// List
+	orgListCmd.Flags().Bool("json", false, "Output in JSON format")
 	orgCmd.AddCommand(orgListCmd)
 
 	// Rename
@@ -54,6 +56,16 @@ var orgListCmd = &cobra.Command{
 		if err != nil {
 			slog.Error("Failed to list organizations", "error", err)
 			os.Exit(1)
+		}
+
+		if jsonOutput, _ := cmd.Flags().GetBool("json"); jsonOutput {
+			encoder := json.NewEncoder(os.Stdout)
+			encoder.SetIndent("", "  ")
+			if err := encoder.Encode(orgs); err != nil {
+				slog.Error("Failed to encode JSON", "error", err)
+				os.Exit(1)
+			}
+			return
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
