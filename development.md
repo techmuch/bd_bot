@@ -87,6 +87,14 @@ The system supports Dual-Mode Auth:
 2.  **Sync:** Run `./joshua task sync` to populate the `tasks` table.
 3.  **Track:** Use the **Developer Tools** web UI to view tasks and flag items (`is_selected`) for active development.
 
+### AI Development Loop
+To accelerate development using the internal task list:
+1.  Select tasks in the **Developer Tools** UI.
+2.  Run `make develop` in your terminal.
+    *   This command exports requirements, reads selected tasks, and prompts the AI (Gemini) to implement them.
+    *   The AI will modify code, update docs, and push changes.
+3.  The system automatically re-syncs tasks upon completion.
+
 ## 4. API Reference
 
 | Method | Endpoint | Description | Auth |

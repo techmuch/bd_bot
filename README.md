@@ -88,6 +88,9 @@ JOSHUA includes a powerful CLI for administration.
 ./joshua task list            # View tasks (Markdown)
 ./joshua task list --selected # View selected tasks
 ./joshua task list --json     # View tasks (JSON)
+
+# AI Development Loop
+make develop         # Process selected tasks with Gemini
 ```
 
 ---
