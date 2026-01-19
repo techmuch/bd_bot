@@ -12,6 +12,7 @@
   min-height: 100vh;
   background-color: var(--bg-body);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .app-header {
