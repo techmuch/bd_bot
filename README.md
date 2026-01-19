@@ -4,10 +4,11 @@ BD_Bot is an automated intelligence platform designed to revolutionize how organ
 
 ## Key Features
 
-*   ** automated Discovery:** A background bot scrapes government solicitation portals (e.g., Georgia Procurement Registry) daily.
+*   **Automated Discovery:** A background bot scrapes government solicitation portals (e.g., Georgia Procurement Registry) daily.
 *   **Intelligent Matching:** An internal AI analyzes your organizational "Narrative" against thousands of opportunities to score relevance.
 *   **Collaborative Dashboard:** A centralized portal for teams to review, claim, and track pursuits.
 *   **Dual-Mode Authentication:** Supports both standalone (local password) and Enterprise SSO integration.
+*   **Developer Ecosystem:** Integrated feedback loop and requirements management tools.
 
 ---
 
@@ -53,50 +54,55 @@ Apply the latest migrations:
 
 ## 2. Administration
 
+BD_Bot includes a powerful CLI for administration.
+
 ### User Management
-BD_Bot includes a CLI for managing users, useful for initial setup or admin tasks.
-
-**Create a new user:**
 ```bash
+# Create/List Users
 ./bd_bot user create -e admin@example.com -n "System Admin"
-```
+./bd_bot user list --json
 
-**Set a password (Standalone Auth):**
-```bash
+# Set Password (Standalone Auth)
 ./bd_bot user passwd -e admin@example.com -p StrongPassword123!
 ```
 
-**List all users:**
+### Organization Management
 ```bash
-./bd_bot user list
+# Manage Organizations
+./bd_bot org list
+./bd_bot org rename --old "Acme Inc" --new "Acme Corp"
+./bd_bot org move-users --from "Acme Inc" --to "Acme Corp"
 ```
 
-### Scraper Management
-Trigger the scraper manually or check its status:
+### System Tools
 ```bash
+# Manual Scrape
 ./bd_bot scraper run-now
+
+# Export/Import Requirements (Versioning)
+./bd_bot req export --out requirements_v1.md
+./bd_bot req import --file new_requirements.md --user admin@example.com
 ```
 
 ---
 
 ## 3. Usage Guide
 
-### Log In
+### Getting Started
 1.  Start the server: `./bd_bot serve`
 2.  Navigate to `http://localhost:8080`.
-3.  Click **Login** and enter your credentials (or use SSO if configured).
+3.  Click **Login** and enter your credentials.
 
-### Set Your Narrative (Crucial!)
-The AI needs to know who you are to find matches.
-1.  Click on your **User Profile** (top right).
-2.  Scroll down to **Business Capability Narrative**.
-3.  Paste your capabilities statement, past performance, or core competencies.
-4.  Click **Save Narrative**.
+### The App Hub
+Upon login, you will see the **Landing Page**, your central hub for accessing:
+*   **BD_Bot:** The core intelligence portal (Library/Inbox).
+*   **Feedback:** Submit bug reports or feature requests directly to the team.
+*   **Developer Tools:** (Admin/Dev only) Manage system requirements via an integrated Markdown editor.
 
-### View Matches
-1.  Navigate to the **Inbox**.
-2.  Review opportunities scored by the AI.
-3.  Use the **Analytics Dashboard** to filter by urgency or agency.
+### Key Workflows
+*   **Set Your Narrative:** Go to **Profile** > **Narrative** to teach the AI about your business.
+*   **View Matches:** Check your **Personal Inbox** for AI-scored opportunities.
+*   **Claim Opportunities:** Click "Mark Interest" or "Take Lead" on any solicitation to coordinate with your team.
 
 ---
 
