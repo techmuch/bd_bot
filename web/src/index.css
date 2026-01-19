@@ -88,13 +88,13 @@
   --border-color: #30363D;
   --border-input: #00FF41; /* Phosphor border */
   
-  --primary-color: #FFB000; /* Amber Terminal - Highlights/Buttons */
+  --primary-color: #c88a00; /* Amber Terminal - Highlights/Buttons */
   --primary-text: #0D1117; /* Dark text on Amber */
   --primary-light: #1F2937; /* Darker background for active states */
   
   --success-color: #00FF41;
   --error-color: #FF3333; /* Tactical Red */
-  --warning-color: #FFB000;
+  --warning-color: #c88a00;
 
   font-family: "Courier New", Courier, monospace; /* Monospace for the feel */
   color-scheme: dark;
