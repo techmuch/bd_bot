@@ -46,6 +46,29 @@ db-check:
 	container exec bd_bot-db psql -U user -d bd_bot -c "SELECT version();"
 
 db-down:
+
 	container-compose down
 
-.PHONY: all build build-web build-go run scrape clean test db-up db-down db-check
+
+
+# AI Development Loop
+
+
+
+develop:
+
+
+
+	@chmod +x scripts/develop.sh
+
+
+
+	@./scripts/develop.sh ./$(BINARY_NAME)
+
+
+
+
+
+
+
+.PHONY: all build build-web build-go run scrape clean test db-up db-down db-check develop
