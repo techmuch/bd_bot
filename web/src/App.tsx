@@ -6,6 +6,7 @@ import SolicitationDetail from './components/SolicitationDetail'
 import LandingPage from './components/LandingPage'
 import FeedbackApp from './components/FeedbackApp'
 import DeveloperApp from './components/DeveloperApp'
+import ChatPanel from './components/ChatPanel'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { LoginButton } from './components/LoginButton'
@@ -31,7 +32,7 @@ function AppContent() {
             <NavLink to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <h1 style={{ fontSize: '1.5rem', margin: 0, color: 'var(--bg-logo-text)', fontFamily: 'var(--font-family, inherit)' }}>JOSHUA</h1>
             </NavLink>
-
+            
             <nav className="nav-tabs" style={{ marginLeft: '2rem' }}>
               {user && isBDBot && (
                 <>
@@ -69,10 +70,10 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
+      <ChatPanel />
     </div>
   );
 }
-
 function App() {
   return (
     <BrowserRouter>

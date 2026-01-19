@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bd_bot/internal/ai"
 	"bd_bot/internal/repository"
 	"net/http"
 )
@@ -11,6 +12,7 @@ func NewRouter(
 	matchRepo *repository.MatchRepository,
 	feedbackRepo *repository.FeedbackRepository,
 	reqRepo *repository.RequirementsRepository,
+	chatSvc *ai.ChatService,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
@@ -20,6 +22,7 @@ func NewRouter(
 	matchHandler := &MatchHandler{repo: matchRepo}
 	feedbackHandler := &FeedbackHandler{repo: feedbackRepo}
 	reqHandler := &RequirementsHandler{repo: reqRepo, userRepo: userRepo}
+	chatHandler := NewChatHandler(chatSvc)
 
 	// Solicitations
 	mux.HandleFunc("GET /api/solicitations", solHandler.List)
@@ -44,6 +47,7 @@ func NewRouter(
 	mux.HandleFunc("POST /api/feedback", AuthMiddleware(feedbackHandler.Create))
 	mux.HandleFunc("GET /api/requirements", AuthMiddleware(reqHandler.GetLatest))
 	mux.HandleFunc("POST /api/requirements", AuthMiddleware(reqHandler.Save))
+	mux.HandleFunc("POST /api/chat", AuthMiddleware(chatHandler.Handle))
 
 	// Serve uploaded files
 	fs := http.FileServer(http.Dir("uploads"))

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bd_bot/internal/ai"
 	"bd_bot/internal/api"
 	"bd_bot/internal/config"
 	"bd_bot/internal/db"
@@ -41,9 +42,10 @@ var serveCmd = &cobra.Command{
 		matchRepo := repository.NewMatchRepository(database)
 		feedbackRepo := repository.NewFeedbackRepository(database)
 		reqRepo := repository.NewRequirementsRepository(database)
+		chatSvc := ai.NewChatService(cfg.LLMURL, cfg.LLMKey, cfg.LLMModel)
 
 		// 2. Router
-		mux := api.NewRouter(solRepo, userRepo, matchRepo, feedbackRepo, reqRepo)
+		mux := api.NewRouter(solRepo, userRepo, matchRepo, feedbackRepo, reqRepo, chatSvc)
 
 		// 3. Frontend
 		dist, err := fs.Sub(web.DistFS, "dist")
