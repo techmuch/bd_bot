@@ -16,33 +16,26 @@ The BD_Bot is a high-performance, cross-platform portal designed to automate the
 
 ### 3.1 Web Portal Structure
 
-The web interface focuses on an inbox-style workflow to minimize cognitive load. Each major view (Library, Inbox, Narrative) must have a unique, bookmarkable URL.
+The web interface utilizes a hub-and-spoke model, starting from a central Landing Page.
 
 #### A. Public View (Unauthenticated)
 
-*   **Global Library:** A searchable list of all scraped solicitations.
-*   **Claim Visibility:** The name of the "Lead" (the first user to claim interest) is prominently displayed in the library view to prevent duplicate effort at a glance.
-*   **Opportunity Detail Page:** View-only access to solicitation text, agency info, and due dates.
-*   **Login Prompt:** Call-to-action to log in via SSO to claim or comment.
+*   **Landing Page (`/`):** Central hub displaying available applications (BD_Bot, Feedback, Developer Tools).
+*   **Login Prompt:** Modal dialog for authentication.
 
-#### B. Authenticated Dashboard (The "Command Center")
+#### B. Applications (Authenticated)
 
-*   **Personal Inbox (Primary View):**
-    *   Features: AI-matched leads, items shared by colleagues, and a "Urgency" indicator based on due dates.
-    *   Analytics: Duplicate the "Timeline" and "Top Agencies" interactive charts from the Global Library to allow visual filtering of matched opportunities.
-    *   Onboarding Banner: Persistent message until the Narrative is populated.
-    *   Workflow: User reviews match -> Marks as "Interested", "Archive", or "Share". Matching skips users with empty narratives, though shared items still appear.
-*   **Collaborative Workspace (Opportunities in Pursuit):**
-    *   Features: List of all "Interested" items organization-wide.
-    *   Visibility: Displays "Primary Claimer" and "Coalition Members."
-    *   Detail View: Discussion thread, history/audit log, and the Draft URL (SharePoint/Google Docs link).
-*   **User Profile & Settings:**
-    *   **Unified View:** Consolidates identity management and AI configuration into a single view.
-    *   **Public Profile:** Edit Full Name, Email Address, and Upload Avatar.
-    *   **Security:** Change Password (with current password verification).
-    *   **AI Narrative:** The "Business Capability Narrative" editor is embedded here to keep user configuration centralized.
-*   **Organizational Analytics (Manager View):**
-    *   Aggregated Stats: Reporting is focused on the Organizational Level (e.g., "Engineering Department") rather than individuals, showing activity and capture rates per unit.
+*   **BD_Bot (`/library`, `/inbox`):**
+    *   **Global Library:** Searchable list of solicitations with indicators for Leads/Interested parties.
+    *   **Personal Inbox:** AI-scored matches tailored to the user's narrative.
+    *   **Detail View:** Comprehensive solicitation details, team claims, and documents.
+*   **Feedback App (`/feedback`):**
+    *   Form to submit bug reports or feature requests for specific apps/views.
+*   **Developer Tools (`/developer`):**
+    *   **Requirements Editor:** Markdown editor for the system's `requirements.md`, supporting versioning and rollback.
+    *   *Access Control:* Restricted to 'admin' or 'developer' roles.
+*   **User Profile (`/profile`):**
+    *   Manage identity (Name, Email, Avatar), Organization, Security (Password), and AI Narrative.
 
 ### 3.2 CLI & TUI Structure (The "Engine Room")
 
@@ -169,10 +162,23 @@ To ensure a structured and manageable implementation, development will follow th
     *   [ ] Develop TUI Monitoring command (`bd_bot scraper run-now`).
 
 ### Phase 5: Polish & Scale
+
 *   **Goal:** Prepare for production deployment and organizational rollout.
+
+*   **Status:** In Progress.
+
 *   **Tasks:**
-    *   Implement full SSO (SAML/OIDC).
-    *   Add Email and Slack notifications.
-    *   Build Organizational Analytics dashboard.
-    *   Finalize CI/CD pipelines and comprehensive unit testing.
-    *   UI/UX Polish (Lip Gloss for CLI, Tailwind for Web).
+
+    *   [ ] Implement full SSO (SAML/OIDC).
+
+    *   [ ] Add Email and Slack notifications.
+
+    *   [ ] Build Organizational Analytics dashboard.
+
+    *   [x] Implement Landing Page & App Hub.
+
+    *   [x] Implement Feedback App & Developer Tools.
+
+    *   [x] UI/UX Polish (Full-width Web Layout, CLI JSON Output).
+
+    *   [ ] Finalize CI/CD pipelines and comprehensive unit testing.
