@@ -264,6 +264,7 @@ const UserProfile: React.FC = () => {
                                 <option value="light">Light (Default)</option>
                                 <option value="dark">Dark Mode</option>
                                 <option value="forest">Forest</option>
+                                <option value="wopr">WOPR (Joshua)</option>
                             </select>
                         </div>
 

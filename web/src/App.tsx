@@ -29,7 +29,7 @@ function AppContent() {
         <div className="header-container">
           <div className="header-main">
             <NavLink to="/" style={{textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-               <h1 style={{fontSize: '1.5rem', margin: 0, color: '#2c3e50'}}>Dev_Portal</h1>
+               <h1 style={{fontSize: '1.5rem', margin: 0, color: 'var(--text-primary)', fontFamily: 'var(--font-family, inherit)'}}>JOSHUA</h1>
             </NavLink>
             
             <nav className="nav-tabs" style={{marginLeft: '2rem'}}>
