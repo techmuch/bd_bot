@@ -11,9 +11,9 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Load from local storage or default to light
+    // Load from local storage or default to wopr
     const [theme, setThemeState] = useState<Theme>(() => {
-        return (localStorage.getItem('bd_bot_theme') as Theme) || 'light';
+        return (localStorage.getItem('bd_bot_theme') as Theme) || 'wopr';
     });
 
     useEffect(() => {
