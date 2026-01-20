@@ -91,7 +91,7 @@ const TaskList: React.FC = () => {
                                     <td style={{ padding: '1rem' }}>
                                         <span className="badge" style={{
                                             background: task.is_completed ? 'var(--success-color)' : 'var(--warning-color)',
-                                            color: 'var(--bg-body',
+                                            color: 'var(--bg-body)',
                                             fontSize: '0.8rem',
                                             padding: '0.25rem 0.5rem',
                                             borderRadius: '4px'
@@ -214,7 +214,7 @@ const DeveloperApp: React.FC = () => {
 
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <NavLink
-                        to="tasks"
+                        to="/developer/tasks"
                         style={({ isActive }) => ({
                             textDecoration: 'none',
                             color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
@@ -226,7 +226,7 @@ const DeveloperApp: React.FC = () => {
                         <ListTodo size={18} /> Task List
                     </NavLink>
                     <NavLink
-                        to="requirements"
+                        to="/developer/requirements"
                         style={({ isActive }) => ({
                             textDecoration: 'none',
                             color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
