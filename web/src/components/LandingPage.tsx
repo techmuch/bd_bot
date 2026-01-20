@@ -59,10 +59,11 @@ const LandingPage: React.FC = () => {
                         <div className="chart-card" style={{
                             padding: '2rem',
                             textAlign: 'center',
-                            height: '100%',
+                            minHeight: '250px',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             cursor: 'pointer',
                             transition: 'transform 0.2s',
                             borderTop: `4px solid ${app.color}`

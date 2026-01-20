@@ -73,13 +73,25 @@ func (h *IRADHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(p)
 }
 
+type StrategyDashboardData struct {
+	Stats []repository.StrategyStat `json:"stats"`
+	ROI   repository.ROIStat        `json:"roi"`
+}
+
 func (h *IRADHandler) GetStrategyStats(w http.ResponseWriter, r *http.Request) {
 	stats, err := h.repo.GetStrategyStats(r.Context())
 	if err != nil {
 		http.Error(w, "Failed to get strategy stats", http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(stats)
+	
+	roi, err := h.repo.GetROIStats(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to get ROI stats", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(StrategyDashboardData{Stats: stats, ROI: roi})
 }
 
 // Reviews

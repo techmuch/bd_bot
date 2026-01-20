@@ -39,6 +39,20 @@ type StrategyStat struct {
 	TotalAllocated float64 `json:"total_allocated"`
 }
 
+type ROIStat struct {
+	TotalCaptured float64 `json:"total_captured"`
+	WinCount      int     `json:"win_count"`
+}
+
+// ... existing code ...
+
+func (r *IRADRepository) GetROIStats(ctx context.Context) (ROIStat, error) {
+	query := `SELECT COALESCE(SUM(captured_funding), 0), COUNT(id) FROM irad_transitions WHERE captured_funding > 0`
+	var s ROIStat
+	err := r.db.QueryRowContext(ctx, query).Scan(&s.TotalCaptured, &s.WinCount)
+	return s, err
+}
+
 type Review struct {
 	ID                  int       `json:"id"`
 	ProjectID           int       `json:"project_id"`

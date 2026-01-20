@@ -203,8 +203,10 @@ To ensure a structured and manageable implementation, development will follow th
 
         *   [ ] Develop Researcher Sandbox (Collaborative Space, Similarity Engine, Template Library).
 
-        *   [x] Create Reviewer Portal (Comparison Tools, Scorecards, Budget Toggles).
+            *   [x] Create Reviewer Portal (Comparison Tools, Scorecards, Budget Toggles).
 
-        *   [ ] Establish Core Workflows (Strategy Definition, Proposal Submission, Execution Tracking).
+            *   [x] Establish Core Workflows (Strategy Definition, Proposal Submission, Execution Tracking).
+
+        
 
     

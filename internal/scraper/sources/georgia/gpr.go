@@ -66,11 +66,74 @@ func (s *GPRScraper) Scrape(ctx context.Context) ([]scraper.Solicitation, error)
 	}
 	resp.Body.Close()
 
-	// 2. Perform Search
+	// 2. Pagination Loop
+	var allSolicitations []scraper.Solicitation
+	start := 0
+	length := 100 // Fetch 100 at a time
+
+	for {
+		gprResp, err := s.fetchPage(ctx, start, length)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(gprResp.Data) == 0 {
+			break
+		}
+
+		slog.Info("GPR Page Fetched", "start", start, "count", len(gprResp.Data), "total_filtered", gprResp.RecordsFiltered)
+
+		for _, item := range gprResp.Data {
+			sol := scraper.Solicitation{
+				SourceID:    getString(item, "esourceNumber"),
+				Title:       getString(item, "title"),
+				Agency:      getString(item, "agencyName"),
+				RawData:     item,
+			}
+
+			eSourceNumberKey := getString(item, "esourceNumberKey")
+			sourceId := getString(item, "sourceId")
+			if eSourceNumberKey != "" && sourceId != "" {
+				sol.URL = fmt.Sprintf("%s?eSourceNumber=%s&sourceSystemType=%s", s.DetailsURL, eSourceNumberKey, sourceId)
+			}
+
+			// Parse Due Date
+			if val, ok := item["closingDateSort"]; ok {
+				if ts, ok := val.(float64); ok {
+					// closingDateSort is in milliseconds
+					sol.DueDate = time.UnixMilli(int64(ts))
+				}
+			}
+
+			// Fetch details for each item
+			if sol.URL != "" {
+				// Add a small delay to be polite
+				time.Sleep(100 * time.Millisecond)
+				if err := s.ScrapeDetails(ctx, &sol); err != nil {
+					slog.Warn("Failed to scrape details", "source_id", sol.SourceID, "error", err)
+				}
+			}
+
+			allSolicitations = append(allSolicitations, sol)
+		}
+
+		start += len(gprResp.Data)
+		if start >= gprResp.RecordsFiltered {
+			break
+		}
+		
+		// Politeness delay between pages
+		time.Sleep(1 * time.Second)
+	}
+
+	return allSolicitations, nil
+}
+
+func (s *GPRScraper) fetchPage(ctx context.Context, start, length int) (*GPRResponse, error) {
 	data := url.Values{}
 	data.Set("draw", "1")
-	data.Set("start", "0")
-	data.Set("length", "50")
+	data.Set("start", fmt.Sprintf("%d", start))
+	data.Set("length", fmt.Sprintf("%d", length))
 	data.Set("search[value]", "")
 	data.Set("search[regex]", "false")
 	data.Set("order[0][column]", "5")
@@ -126,45 +189,8 @@ func (s *GPRScraper) Scrape(ctx context.Context) ([]scraper.Solicitation, error)
 	if err := json.NewDecoder(searchResp.Body).Decode(&gprResp); err != nil {
 		return nil, fmt.Errorf("failed to decode GPR JSON: %w", err)
 	}
-
-	slog.Info("GPR Data Received", "total_records", gprResp.RecordsTotal, "fetched", len(gprResp.Data))
-
-	var solicitations []scraper.Solicitation
-	for _, item := range gprResp.Data {
-		sol := scraper.Solicitation{
-			SourceID:    getString(item, "esourceNumber"),
-			Title:       getString(item, "title"),
-			Agency:      getString(item, "agencyName"),
-			RawData:     item,
-		}
-
-		eSourceNumberKey := getString(item, "esourceNumberKey")
-		sourceId := getString(item, "sourceId")
-		if eSourceNumberKey != "" && sourceId != "" {
-			sol.URL = fmt.Sprintf("%s?eSourceNumber=%s&sourceSystemType=%s", s.DetailsURL, eSourceNumberKey, sourceId)
-		}
-
-		// Parse Due Date
-		if val, ok := item["closingDateSort"]; ok {
-			if ts, ok := val.(float64); ok {
-				// closingDateSort is in milliseconds
-				sol.DueDate = time.UnixMilli(int64(ts))
-			}
-		}
-
-		// Fetch details for each item
-		if sol.URL != "" {
-			// Add a small delay to be polite
-			time.Sleep(200 * time.Millisecond)
-			if err := s.ScrapeDetails(ctx, &sol); err != nil {
-				slog.Warn("Failed to scrape details", "source_id", sol.SourceID, "error", err)
-			}
-		}
-
-		solicitations = append(solicitations, sol)
-	}
-
-	return solicitations, nil
+	
+	return &gprResp, nil
 }
 
 func (s *GPRScraper) ScrapeDetails(ctx context.Context, sol *scraper.Solicitation) error {
