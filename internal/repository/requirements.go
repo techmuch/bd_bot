@@ -39,3 +39,35 @@ func (r *RequirementsRepository) CreateVersion(ctx context.Context, content stri
 	_, err := r.db.ExecContext(ctx, query, content, userID)
 	return err
 }
+
+func (r *RequirementsRepository) ListVersions(ctx context.Context) ([]RequirementsDoc, error) {
+	query := `SELECT id, created_by, created_at FROM requirements_versions ORDER BY id DESC`
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var versions []RequirementsDoc
+	for rows.Next() {
+		var doc RequirementsDoc
+		if err := rows.Scan(&doc.ID, &doc.CreatedBy, &doc.CreatedAt); err != nil {
+			return nil, err
+		}
+		versions = append(versions, doc)
+	}
+	return versions, nil
+}
+
+func (r *RequirementsRepository) GetVersion(ctx context.Context, id int) (*RequirementsDoc, error) {
+	query := `SELECT id, content, created_by, created_at FROM requirements_versions WHERE id = $1`
+	var doc RequirementsDoc
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&doc.ID, &doc.Content, &doc.CreatedBy, &doc.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &doc, nil
+}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 type RequirementsHandler struct {
@@ -13,7 +14,7 @@ type RequirementsHandler struct {
 	taskRepo *repository.TaskRepository
 }
 
-func (h *RequirementsHandler) GetLatest(w http.ResponseWriter, r *http.Request) {
+func (h *RequirementsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Check Role
 	userID := r.Context().Value("user_id").(int)
 	user, err := h.userRepo.FindByID(r.Context(), userID)
@@ -26,10 +27,26 @@ func (h *RequirementsHandler) GetLatest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	doc, err := h.repo.GetLatest(r.Context())
-	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+	versionStr := r.URL.Query().Get("version")
+	var doc *repository.RequirementsDoc
+
+	if versionStr != "" {
+		id, err := strconv.Atoi(versionStr)
+		if err != nil {
+			http.Error(w, "Invalid version ID", http.StatusBadRequest)
+			return
+		}
+		doc, err = h.repo.GetVersion(r.Context(), id)
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		doc, err = h.repo.GetLatest(r.Context())
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 	}
 	
 	if doc == nil {
@@ -39,6 +56,27 @@ func (h *RequirementsHandler) GetLatest(w http.ResponseWriter, r *http.Request) 
 	}
 
 	json.NewEncoder(w).Encode(doc)
+}
+
+func (h *RequirementsHandler) ListVersions(w http.ResponseWriter, r *http.Request) {
+	// Check Role
+	userID := r.Context().Value("user_id").(int)
+	user, err := h.userRepo.FindByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+	if user.Role != "admin" && user.Role != "developer" {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	versions, err := h.repo.ListVersions(r.Context())
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(versions)
 }
 
 type SaveRequirementsRequest struct {
