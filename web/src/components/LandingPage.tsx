@@ -28,7 +28,7 @@ const LandingPage: React.FC = () => {
             name: "Developer Tools",
             description: "Manage system requirements and configuration.",
             icon: <Code size={32} />,
-            link: "/developer",
+            link: "/developer/tasks",
             color: "#e74c3c"
         });
     }
