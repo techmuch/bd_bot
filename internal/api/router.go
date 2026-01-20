@@ -57,6 +57,7 @@ func NewRouter(
 	mux.HandleFunc("POST /api/chat", AuthMiddleware(chatHandler.Handle))
 
 	// IRAD
+	mux.HandleFunc("GET /api/irad/stats", AuthMiddleware(iradHandler.GetStrategyStats))
 	mux.HandleFunc("GET /api/irad/scos", AuthMiddleware(iradHandler.ListSCOs))
 	mux.HandleFunc("POST /api/irad/scos", AuthMiddleware(iradHandler.CreateSCO))
 	mux.HandleFunc("GET /api/irad/projects", AuthMiddleware(iradHandler.ListProjects))

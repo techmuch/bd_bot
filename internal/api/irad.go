@@ -71,3 +71,12 @@ func (h *IRADHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	p.ID = id
 	json.NewEncoder(w).Encode(p)
 }
+
+func (h *IRADHandler) GetStrategyStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.repo.GetStrategyStats(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to get strategy stats", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(stats)
+}

@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Target, Rocket, Plus, ChevronRight, Users, DollarSign } from 'lucide-react';
-
-interface SCO {
-    id: number;
-    title: string;
-    description: string;
-    target_spend_percent: number;
-}
+import { Target, Rocket, ChevronRight, Users, DollarSign } from 'lucide-react';
+import StrategyDashboard from './StrategyDashboard';
 
 interface Project {
     id: number;
@@ -18,76 +12,6 @@ interface Project {
     status: string;
     total_budget: number;
 }
-
-const IRADStrategy: React.FC = () => {
-    const [scos, setSCOs] = useState<SCO[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch('/api/irad/scos')
-            .then(res => res.json())
-            .then(data => {
-                setSCOs(data || []);
-                setLoading(false);
-            });
-    }, []);
-
-    if (loading) return <div>Loading strategy...</div>;
-
-    return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' }}>
-            <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>Strategic Capability Objectives (SCOs)</h2>
-                    <button className="btn-primary">
-                        <Plus size={16} /> Define New SCO
-                    </button>
-                </div>
-
-                <div className="table-responsive">
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
-                                <th style={{ padding: '1rem' }}>SCO Title</th>
-                                <th style={{ padding: '1rem' }}>Target Allocation</th>
-                                <th style={{ padding: '1rem' }}>Active Projects</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {scos.map(sco => (
-                                <tr key={sco.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{sco.title}</div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{sco.description}</div>
-                                    </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ flex: 1, height: '8px', background: 'var(--bg-body)', borderRadius: '4px', overflow: 'hidden' }}>
-                                                <div style={{ width: `${sco.target_spend_percent}%`, height: '100%', background: 'var(--primary-color)' }}></div>
-                                            </div>
-                                            <span style={{ fontWeight: 'bold' }}>{sco.target_spend_percent}%</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '1rem', textAlign: 'center' }}>0</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div className="chart-card">
-                <h3 style={{ marginTop: 0 }}>Strategy Insight</h3>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                    SCOs drive the Calls for Proposals. Ensure your target allocations match the 5-year vision.
-                </p>
-                <div style={{ padding: '2rem', textAlign: 'center', background: 'var(--bg-body)', borderRadius: '8px', opacity: 0.5 }}>
-                    [Sunburst Chart Placeholder]
-                </div>
-            </div>
-        </div>
-    );
-};
 
 const IRADProjects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -161,7 +85,7 @@ const IRADApp: React.FC = () => {
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
             <Routes>
-                <Route path="strategy" element={<IRADStrategy />} />
+                <Route path="strategy" element={<StrategyDashboard />} />
                 <Route path="portfolio" element={<IRADProjects />} />
                 <Route path="/" element={<Navigate to="portfolio" replace />} />
             </Routes>

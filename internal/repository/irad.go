@@ -32,14 +32,41 @@ type IRADProject struct {
 	PIName   string `json:"pi_name,omitempty"`
 }
 
-type RoadmapEntry struct {
-	ID         int             `json:"id"`
-	ProjectID  int             `json:"project_id"`
-	FiscalYear int             `json:"fiscal_year"`
-	LaborCost  float64         `json:"labor_cost"`
-	ODCCost    float64         `json:"odc_cost"`
-	SubCost    float64         `json:"sub_cost"`
-	Milestones json.RawMessage `json:"milestones"`
+type StrategyStat struct {
+	SCOID          int     `json:"sco_id"`
+	SCOTitle       string  `json:"sco_title"`
+	TargetPercent  float64 `json:"target_percent"`
+	ProjectCount   int     `json:"project_count"`
+	TotalAllocated float64 `json:"total_allocated"`
+}
+
+// ... existing code ...
+
+func (r *IRADRepository) GetStrategyStats(ctx context.Context) ([]StrategyStat, error) {
+	query := `
+		SELECT s.id, s.title, s.target_spend_percent, 
+		       COUNT(p.id) as project_count, 
+		       COALESCE(SUM(p.total_budget), 0) as total_allocated
+		FROM irad_scos s
+		LEFT JOIN irad_projects p ON s.id = p.sco_id
+		GROUP BY s.id, s.title, s.target_spend_percent
+		ORDER BY s.title ASC
+	`
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []StrategyStat
+	for rows.Next() {
+		var s StrategyStat
+		if err := rows.Scan(&s.SCOID, &s.SCOTitle, &s.TargetPercent, &s.ProjectCount, &s.TotalAllocated); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
 }
 
 type IRADRepository struct {

@@ -188,11 +188,23 @@ To ensure a structured and manageable implementation, development will follow th
         *   [ ] Finalize CI/CD pipelines and comprehensive unit testing.
 
 ### Phase 6: Strategic Growth (IRAD)
+
 *   **Goal:** Implement a comprehensive IRAD management system to balance creative flexibility with strategic oversight.
-*   **Status:** Planned.
+
+*   **Status:** In Progress.
+
 *   **Tasks:**
-    *   [ ] Implement Strategy Dashboard (Sunburst Chart, Gap Heatmap, ROI Tracker).
+
+    *   [x] Establish IRAD Data Schema and API foundation.
+
+    *   [x] Implement Strategy Dashboard (Sunburst Chart, Gap Heatmap, ROI Tracker).
+
     *   [ ] Build Roadmap Builder (Interactive Gantt, Dependency Mapper, Resource Histogram).
+
+
+
     *   [ ] Develop Researcher Sandbox (Collaborative Space, Similarity Engine, Template Library).
+
     *   [ ] Create Reviewer Portal (Comparison Tools, Scorecards, Budget Toggles).
+
     *   [ ] Establish Core Workflows (Strategy Definition, Proposal Submission, Execution Tracking).
