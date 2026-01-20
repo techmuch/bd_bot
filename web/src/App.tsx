@@ -12,7 +12,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { LoginButton } from './components/LoginButton'
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
-import { LayoutGrid, Inbox } from 'lucide-react'
+import { LayoutGrid, Inbox, ListTodo, FileCode } from 'lucide-react'
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -25,6 +25,7 @@ function AppContent() {
 
   // Hide BD_Bot nav tabs if not in BD_Bot context (library/inbox/solicitation)
   const isBDBot = location.pathname.startsWith('/library') || location.pathname.startsWith('/inbox') || location.pathname.startsWith('/solicitation');
+  const isDeveloper = location.pathname.startsWith('/developer');
 
   return (
     <div className="app-container" style={{paddingRight: isChatOpen ? '400px' : '0', transition: 'padding-right 0.3s ease-in-out'}}>
@@ -49,6 +50,22 @@ function AppContent() {
                     className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
                   >
                     <Inbox size={16} /> Inbox
+                  </NavLink>
+                </>
+              )}
+              {user && isDeveloper && (
+                <>
+                  <NavLink
+                    to="/developer/tasks"
+                    className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+                  >
+                    <ListTodo size={16} /> Task List
+                  </NavLink>
+                  <NavLink
+                    to="/developer/requirements"
+                    className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+                  >
+                    <FileCode size={16} /> Requirements
                   </NavLink>
                 </>
               )}

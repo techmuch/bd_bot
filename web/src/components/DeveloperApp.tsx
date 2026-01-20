@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Save, ArrowLeft, History, FileCode, ListTodo, CheckSquare, Square } from 'lucide-react';
-import { Link, NavLink, Routes, Route, Navigate } from 'react-router-dom';
+import { Save, ArrowLeft, History, FileCode, CheckSquare, Square } from 'lucide-react';
+import { Link, Routes, Route, Navigate } from 'react-router-dom';
 
 interface Task {
     id: number;
@@ -211,33 +211,6 @@ const DeveloperApp: React.FC = () => {
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
                     <ArrowLeft size={16} /> Back to Hub
                 </Link>
-
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <NavLink
-                        to="/developer/tasks"
-                        style={({ isActive }) => ({
-                            textDecoration: 'none',
-                            color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
-                            fontWeight: isActive ? 'bold' : 'normal',
-                            borderBottom: isActive ? '2px solid var(--primary-color)' : '2px solid transparent',
-                            padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
-                        })}
-                    >
-                        <ListTodo size={18} /> Task List
-                    </NavLink>
-                    <NavLink
-                        to="/developer/requirements"
-                        style={({ isActive }) => ({
-                            textDecoration: 'none',
-                            color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
-                            fontWeight: isActive ? 'bold' : 'normal',
-                            borderBottom: isActive ? '2px solid var(--primary-color)' : '2px solid transparent',
-                            padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
-                        })}
-                    >
-                        <FileCode size={18} /> Requirements
-                    </NavLink>
-                </div>
             </div>
 
             <Routes>
