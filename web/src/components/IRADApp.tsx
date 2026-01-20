@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Target, Rocket, ChevronRight, Users, DollarSign } from 'lucide-react';
 import StrategyDashboard from './StrategyDashboard';
+import ReviewerPortal from './ReviewerPortal';
 
 interface Project {
     id: number;
@@ -87,6 +88,7 @@ const IRADApp: React.FC = () => {
             <Routes>
                 <Route path="strategy" element={<StrategyDashboard />} />
                 <Route path="portfolio" element={<IRADProjects />} />
+                <Route path="reviews" element={<ReviewerPortal />} />
                 <Route path="/" element={<Navigate to="portfolio" replace />} />
             </Routes>
         </div>

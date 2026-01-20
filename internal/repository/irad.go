@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
 )
 
@@ -40,33 +39,18 @@ type StrategyStat struct {
 	TotalAllocated float64 `json:"total_allocated"`
 }
 
-// ... existing code ...
-
-func (r *IRADRepository) GetStrategyStats(ctx context.Context) ([]StrategyStat, error) {
-	query := `
-		SELECT s.id, s.title, s.target_spend_percent, 
-		       COUNT(p.id) as project_count, 
-		       COALESCE(SUM(p.total_budget), 0) as total_allocated
-		FROM irad_scos s
-		LEFT JOIN irad_projects p ON s.id = p.sco_id
-		GROUP BY s.id, s.title, s.target_spend_percent
-		ORDER BY s.title ASC
-	`
-	rows, err := r.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var stats []StrategyStat
-	for rows.Next() {
-		var s StrategyStat
-		if err := rows.Scan(&s.SCOID, &s.SCOTitle, &s.TargetPercent, &s.ProjectCount, &s.TotalAllocated); err != nil {
-			return nil, err
-		}
-		stats = append(stats, s)
-	}
-	return stats, nil
+type Review struct {
+	ID                  int       `json:"id"`
+	ProjectID           int       `json:"project_id"`
+	ReviewerID          int       `json:"reviewer_id"`
+	TechnicalMerit      int       `json:"technical_merit"`
+	StrategicAlignment  int       `json:"strategic_alignment"`
+	TransitionPotential int       `json:"transition_potential"`
+	Comments            string    `json:"comments"`
+	Status              string    `json:"status"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
+	ReviewerName        string    `json:"reviewer_name,omitempty"`
 }
 
 type IRADRepository struct {
@@ -137,4 +121,74 @@ func (r *IRADRepository) CreateProject(ctx context.Context, p IRADProject) (int,
 	var id int
 	err := r.db.QueryRowContext(ctx, query, p.SCOID, p.Title, p.Description, p.PIID, p.Status, p.TotalBudget).Scan(&id)
 	return id, err
+}
+
+func (r *IRADRepository) GetStrategyStats(ctx context.Context) ([]StrategyStat, error) {
+	query := `
+		SELECT s.id, s.title, s.target_spend_percent, 
+		       COUNT(p.id) as project_count, 
+		       COALESCE(SUM(p.total_budget), 0) as total_allocated
+		FROM irad_scos s
+		LEFT JOIN irad_projects p ON s.id = p.sco_id
+		GROUP BY s.id, s.title, s.target_spend_percent
+		ORDER BY s.title ASC
+	`
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []StrategyStat
+	for rows.Next() {
+		var s StrategyStat
+		if err := rows.Scan(&s.SCOID, &s.SCOTitle, &s.TargetPercent, &s.ProjectCount, &s.TotalAllocated); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
+}
+
+// Reviews
+func (r *IRADRepository) CreateReview(ctx context.Context, rev Review) error {
+	query := `
+		INSERT INTO irad_reviews (project_id, reviewer_id, technical_merit, strategic_alignment, transition_potential, comments, status, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+		ON CONFLICT (project_id, reviewer_id)
+		DO UPDATE SET 
+			technical_merit = $3,
+			strategic_alignment = $4,
+			transition_potential = $5,
+			comments = $6,
+			status = $7,
+			updated_at = NOW()
+	`
+	_, err := r.db.ExecContext(ctx, query, rev.ProjectID, rev.ReviewerID, rev.TechnicalMerit, rev.StrategicAlignment, rev.TransitionPotential, rev.Comments, rev.Status)
+	return err
+}
+
+func (r *IRADRepository) GetReviewsByProject(ctx context.Context, projectID int) ([]Review, error) {
+	query := `
+		SELECT r.id, r.project_id, r.reviewer_id, r.technical_merit, r.strategic_alignment, r.transition_potential, r.comments, r.status, r.created_at, r.updated_at, u.full_name
+		FROM irad_reviews r
+		JOIN users u ON r.reviewer_id = u.id
+		WHERE r.project_id = $1
+		ORDER BY r.updated_at DESC
+	`
+	rows, err := r.db.QueryContext(ctx, query, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reviews []Review
+	for rows.Next() {
+		var r Review
+		if err := rows.Scan(&r.ID, &r.ProjectID, &r.ReviewerID, &r.TechnicalMerit, &r.StrategicAlignment, &r.TransitionPotential, &r.Comments, &r.Status, &r.CreatedAt, &r.UpdatedAt, &r.ReviewerName); err != nil {
+			return nil, err
+		}
+		reviews = append(reviews, r)
+	}
+	return reviews, nil
 }

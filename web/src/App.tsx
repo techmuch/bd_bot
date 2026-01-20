@@ -13,7 +13,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { LoginButton } from './components/LoginButton'
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
-import { LayoutGrid, Inbox, ListTodo, FileCode, Target, Briefcase } from 'lucide-react'
+import { LayoutGrid, Inbox, ListTodo, FileCode, Target, Briefcase, ClipboardCheck } from 'lucide-react'
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -84,6 +84,12 @@ function AppContent() {
                     className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
                   >
                     <Briefcase size={16} /> Portfolio
+                  </NavLink>
+                  <NavLink
+                    to="/irad/reviews"
+                    className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+                  >
+                    <ClipboardCheck size={16} /> Reviews
                   </NavLink>
                 </>
               )}

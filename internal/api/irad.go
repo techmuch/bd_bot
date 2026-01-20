@@ -4,6 +4,7 @@ import (
 	"bd_bot/internal/repository"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 type IRADHandler struct {
@@ -79,4 +80,43 @@ func (h *IRADHandler) GetStrategyStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(stats)
+}
+
+// Reviews
+func (h *IRADHandler) CreateReview(w http.ResponseWriter, r *http.Request) {
+	var rev repository.Review
+	if err := json.NewDecoder(r.Body).Decode(&rev); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	
+	// Set Reviewer ID from context
+	rev.ReviewerID = r.Context().Value("user_id").(int)
+
+	if err := h.repo.CreateReview(r.Context(), rev); err != nil {
+		http.Error(w, "Failed to submit review", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *IRADHandler) ListReviews(w http.ResponseWriter, r *http.Request) {
+	projectIDStr := r.URL.Query().Get("project_id")
+	if projectIDStr == "" {
+		http.Error(w, "Missing project_id", http.StatusBadRequest)
+		return
+	}
+	
+	projectID, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project_id", http.StatusBadRequest)
+		return
+	}
+	
+	reviews, err := h.repo.GetReviewsByProject(r.Context(), projectID)
+	if err != nil {
+		http.Error(w, "Failed to list reviews", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(reviews)
 }

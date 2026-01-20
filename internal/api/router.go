@@ -62,6 +62,8 @@ func NewRouter(
 	mux.HandleFunc("POST /api/irad/scos", AuthMiddleware(iradHandler.CreateSCO))
 	mux.HandleFunc("GET /api/irad/projects", AuthMiddleware(iradHandler.ListProjects))
 	mux.HandleFunc("POST /api/irad/projects", AuthMiddleware(iradHandler.CreateProject))
+	mux.HandleFunc("GET /api/irad/reviews", AuthMiddleware(iradHandler.ListReviews))
+	mux.HandleFunc("POST /api/irad/reviews", AuthMiddleware(iradHandler.CreateReview))
 
 	// Serve uploaded files
 	fs := http.FileServer(http.Dir("uploads"))

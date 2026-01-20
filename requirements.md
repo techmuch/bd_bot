@@ -199,12 +199,12 @@ To ensure a structured and manageable implementation, development will follow th
 
     *   [x] Implement Strategy Dashboard (Sunburst Chart, Gap Heatmap, ROI Tracker).
 
-    *   [ ] Build Roadmap Builder (Interactive Gantt, Dependency Mapper, Resource Histogram).
+        *   [ ] Build Roadmap Builder (Interactive Gantt, Dependency Mapper, Resource Histogram).
 
+        *   [ ] Develop Researcher Sandbox (Collaborative Space, Similarity Engine, Template Library).
 
+        *   [x] Create Reviewer Portal (Comparison Tools, Scorecards, Budget Toggles).
 
-    *   [ ] Develop Researcher Sandbox (Collaborative Space, Similarity Engine, Template Library).
+        *   [ ] Establish Core Workflows (Strategy Definition, Proposal Submission, Execution Tracking).
 
-    *   [ ] Create Reviewer Portal (Comparison Tools, Scorecards, Budget Toggles).
-
-    *   [ ] Establish Core Workflows (Strategy Definition, Proposal Submission, Execution Tracking).
+    
