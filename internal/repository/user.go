@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -21,6 +22,7 @@ type User struct {
 	AuthProvider string    `json:"auth_provider"`
 	AvatarURL    string    `json:"avatar_url"`
 	Organization string    `json:"organization_name"`
+	MatchThreshold int     `json:"match_threshold"`
 }
 
 type NarrativeVersion struct {
@@ -39,7 +41,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url, organization_name FROM users WHERE email = $1`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url, organization_name, match_threshold FROM users WHERE email = $1`
 	row := r.db.QueryRowContext(ctx, query, email)
 
 	var user User
@@ -48,8 +50,9 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 	var authProvider sql.NullString
 	var avatarURL sql.NullString
 	var orgName sql.NullString
+	var matchThreshold sql.NullInt64
 
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL, &orgName)
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL, &orgName, &matchThreshold)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +61,16 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 	user.AuthProvider = authProvider.String
 	user.AvatarURL = avatarURL.String
 	user.Organization = orgName.String
+	if matchThreshold.Valid {
+		user.MatchThreshold = int(matchThreshold.Int64)
+	} else {
+		user.MatchThreshold = 75 // Default if null
+	}
 	return &user, nil
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
-	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url, organization_name FROM users WHERE id = $1`
+	query := `SELECT id, email, full_name, role, narrative, created_at, last_active_at, password_hash, auth_provider, avatar_url, organization_name, match_threshold FROM users WHERE id = $1`
 	row := r.db.QueryRowContext(ctx, query, id)
 
 	var user User
@@ -71,8 +79,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
 	var authProvider sql.NullString
 	var avatarURL sql.NullString
 	var orgName sql.NullString
+	var matchThreshold sql.NullInt64
 
-	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL, &orgName)
+	err := row.Scan(&user.ID, &user.Email, &user.FullName, &user.Role, &narrative, &user.CreatedAt, &user.LastActiveAt, &passwordHash, &authProvider, &avatarURL, &orgName, &matchThreshold)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +90,11 @@ func (r *UserRepository) FindByID(ctx context.Context, id int) (*User, error) {
 	user.AuthProvider = authProvider.String
 	user.AvatarURL = avatarURL.String
 	user.Organization = orgName.String
+	if matchThreshold.Valid {
+		user.MatchThreshold = int(matchThreshold.Int64)
+	} else {
+		user.MatchThreshold = 75 // Default
+	}
 	return &user, nil
 }
 
@@ -113,6 +127,7 @@ func (r *UserRepository) UpdateLastActive(ctx context.Context, userID int) error
 }
 
 func (r *UserRepository) UpdateNarrative(ctx context.Context, userID int, narrative string) error {
+	slog.Info("UpdateNarrative called", "user_id", userID)
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -121,6 +136,7 @@ func (r *UserRepository) UpdateNarrative(ctx context.Context, userID int, narrat
 	// Update current
 	_, err = tx.ExecContext(ctx, "UPDATE users SET narrative = $1, updated_at = NOW() WHERE id = $2", narrative, userID)
 	if err != nil {
+		slog.Error("Failed to update users table", "error", err)
 		tx.Rollback()
 		return err
 	}
@@ -128,14 +144,16 @@ func (r *UserRepository) UpdateNarrative(ctx context.Context, userID int, narrat
 	// Insert version
 	_, err = tx.ExecContext(ctx, "INSERT INTO narrative_versions (user_id, content) VALUES ($1, $2)", userID, narrative)
 	if err != nil {
+		slog.Error("Failed to insert narrative_version", "error", err)
 		tx.Rollback()
 		return err
 	}
 
+	slog.Info("Narrative updated and versioned successfully")
 	return tx.Commit()
 }
 
-func (r *UserRepository) UpdateProfile(ctx context.Context, userID int, email, fullName, avatarURL, orgName string) error {
+func (r *UserRepository) UpdateProfile(ctx context.Context, userID int, email, fullName, avatarURL, orgName string, matchThreshold int) error {
 	if orgName != "" {
 		// Auto-add to organizations table
 		_, err := r.db.ExecContext(ctx, "INSERT INTO organizations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", orgName)
@@ -144,8 +162,8 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, userID int, email, f
 		}
 	}
 
-	query := `UPDATE users SET email = $1, full_name = $2, avatar_url = $3, organization_name = $4, updated_at = NOW() WHERE id = $5`
-	_, err := r.db.ExecContext(ctx, query, email, fullName, avatarURL, orgName, userID)
+	query := `UPDATE users SET email = $1, full_name = $2, avatar_url = $3, organization_name = $4, match_threshold = $5, updated_at = NOW() WHERE id = $6`
+	_, err := r.db.ExecContext(ctx, query, email, fullName, avatarURL, orgName, matchThreshold, userID)
 	return err
 }
 

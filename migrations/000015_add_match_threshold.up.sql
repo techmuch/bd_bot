@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN match_threshold INT DEFAULT 75;

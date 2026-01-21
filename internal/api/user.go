@@ -80,6 +80,7 @@ type UpdateProfileRequest struct {
 	FullName     string `json:"full_name"`
 	AvatarURL    string `json:"avatar_url"`
 	Organization string `json:"organization_name"`
+	MatchThreshold int  `json:"match_threshold"`
 }
 
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +101,13 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.repo.UpdateProfile(r.Context(), userID, req.Email, req.FullName, req.AvatarURL, req.Organization); err != nil {
+	if req.MatchThreshold == 0 {
+		req.MatchThreshold = 75 // Default or keep existing?
+		// Ideally we should keep existing if not provided, but JSON 0 is ambiguous.
+		// Frontend should send current value.
+	}
+
+	if err := h.repo.UpdateProfile(r.Context(), userID, req.Email, req.FullName, req.AvatarURL, req.Organization, req.MatchThreshold); err != nil {
 		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
 		return
 	}

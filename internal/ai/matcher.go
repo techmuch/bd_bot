@@ -33,14 +33,20 @@ func NewMatcher(url, key, model string) *Matcher {
 
 func (m *Matcher) Match(narrative string, sol scraper.Solicitation) (*MatchResult, error) {
 	prompt := fmt.Sprintf(`
-You are a Business Development expert. Evalute if the following opportunity matches the user's business capabilities.
+You are a Business Development expert. Evaluate if the following opportunity matches the user's business capabilities.
 
-User Narrative: "%s"
+**User Narrative & Matching Rubric:**
+"%s"
 
-Opportunity:
+**Opportunity:**
 Title: %s
 Agency: %s
 Description: %s
+
+**Instructions:**
+1. Analyze the User Narrative for any specific matching rubric, keywords, or disqualifiers.
+2. Score the opportunity from 0-100 based on alignment with the narrative and rubric.
+3. Provide a concise explanation.
 
 Respond with a JSON object ONLY:
 {
