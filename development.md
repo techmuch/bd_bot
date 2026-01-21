@@ -106,7 +106,7 @@ To accelerate development using the internal task list:
 | `POST` | `/api/solicitations/:id/claim` | Take Lead/Interest | Yes |
 | `POST` | `/api/solicitations/:id/comments` | Add Comment | Yes |
 | `GET` | `/api/matches` | List user matches | Yes |
-| `PUT` | `/api/user/profile` | Update Profile | Yes |
+| `PUT` | `/api/user/profile` | Update Profile (incl. Threshold) | Yes |
 | `POST` | `/api/feedback` | Submit Feedback | Yes |
 | `GET` | `/api/requirements` | Get Requirements | Dev/Admin |
 | `GET` | `/api/tasks` | List synced tasks | Dev/Admin |

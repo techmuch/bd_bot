@@ -153,6 +153,7 @@ To ensure a structured and manageable implementation, development will follow th
     *   [x] Integrate OpenAI-compatible API client.
     *   [x] Build "Narrative Editor" (Frontend) and storage (Backend).
     *   [x] Implement the Matching Engine logic (Solication vs. Narrative).
+    *   [x] Add Match Threshold Configuration (Slider 0-100) and Rubric support in Prompt.
     *   [x] Create the "Personal Inbox" view and logic.
 
 ### Phase 4: Collaboration & Workflow
