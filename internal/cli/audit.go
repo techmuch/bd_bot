@@ -17,8 +17,9 @@ func init() {
 }
 
 var auditCmd = &cobra.Command{
-	Use:   "audit",
-	Short: "View recent audit logs",
+	Use:     "audit",
+	Short:   "View recent audit logs",
+	GroupID: "dev",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, _ := config.LoadConfig()
 		database, err := db.Connect(cfg.DatabaseURL)

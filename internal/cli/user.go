@@ -36,8 +36,9 @@ func init() {
 }
 
 var userCmd = &cobra.Command{
-	Use:   "user",
-	Short: "Manage users",
+	Use:     "user",
+	Short:   "Manage users",
+	GroupID: "identity",
 }
 
 var userPasswdCmd = &cobra.Command{

@@ -20,8 +20,9 @@ func init() {
 }
 
 var serveCmd = &cobra.Command{
-	Use:   "serve",
-	Short: "Start the BD_Bot web portal",
+	Use:     "serve",
+	Short:   "Start the BD_Bot web portal",
+	GroupID: "core",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := config.LoadConfig()
 		if err != nil {

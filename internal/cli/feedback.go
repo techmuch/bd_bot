@@ -45,8 +45,9 @@ func init() {
 }
 
 var feedbackCmd = &cobra.Command{
-	Use:   "feedback",
-	Short: "Manage user feedback",
+	Use:     "feedback",
+	Short:   "Manage user feedback",
+	GroupID: "dev",
 }
 
 var fbListCmd = &cobra.Command{

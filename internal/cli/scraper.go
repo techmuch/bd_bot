@@ -21,8 +21,9 @@ func init() {
 }
 
 var scraperCmd = &cobra.Command{
-	Use:   "scraper",
-	Short: "Manage the scraper bot",
+	Use:     "scraper",
+	Short:   "Manage the scraper bot",
+	GroupID: "intel",
 }
 
 var runNowCmd = &cobra.Command{

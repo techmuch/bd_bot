@@ -43,8 +43,9 @@ func init() {
 }
 
 var orgCmd = &cobra.Command{
-	Use:   "org",
-	Short: "Manage organizations",
+	Use:     "org",
+	Short:   "Manage organizations",
+	GroupID: "identity",
 }
 
 var orgListCmd = &cobra.Command{

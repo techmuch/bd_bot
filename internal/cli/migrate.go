@@ -19,8 +19,9 @@ func init() {
 }
 
 var migrateCmd = &cobra.Command{
-	Use:   "migrate",
-	Short: "Manage database migrations",
+	Use:     "migrate",
+	Short:   "Manage database migrations",
+	GroupID: "core",
 }
 
 var migrateUpCmd = &cobra.Command{

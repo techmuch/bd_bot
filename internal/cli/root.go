@@ -28,6 +28,12 @@ and pursuit of government business development opportunities.`,
 }
 
 func Execute() {
+	// Define Command Groups
+	rootCmd.AddGroup(&cobra.Group{ID: "core", Title: "Core Infrastructure"})
+	rootCmd.AddGroup(&cobra.Group{ID: "identity", Title: "Identity Management"})
+	rootCmd.AddGroup(&cobra.Group{ID: "intel", Title: "Intelligence Engine"})
+	rootCmd.AddGroup(&cobra.Group{ID: "dev", Title: "Developer Tools"})
+
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

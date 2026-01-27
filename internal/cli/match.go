@@ -9,27 +9,74 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
+var (
+	matchUserEmail string
+	matchUserID    int
+)
+
 func init() {
 	rootCmd.AddCommand(matchCmd)
+	matchCmd.AddCommand(matchClearCmd)
+
+	matchCmd.PersistentFlags().StringVarP(&matchUserEmail, "email", "e", "", "User Email")
+	matchCmd.PersistentFlags().IntVarP(&matchUserID, "id", "i", 0, "User ID")
+}
+
+func resolveUser(ctx context.Context, userRepo *repository.UserRepository) (*repository.User, error) {
+	if matchUserID != 0 {
+		return userRepo.FindByID(ctx, matchUserID)
+	}
+	if matchUserEmail != "" {
+		return userRepo.FindByEmail(ctx, matchUserEmail)
+	}
+	// Default to ID 1 for backward compatibility if no flags provided
+	return userRepo.FindByID(ctx, 1)
+}
+
+var matchClearCmd = &cobra.Command{
+	Use:   "clear",
+	Short: "Clear all matches for a user",
+	Run: func(cmd *cobra.Command, args []string) {
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			slog.Error("Error loading config", "error", err)
+			os.Exit(1)
+		}
+
+		database, err := db.Connect(cfg.DatabaseURL)
+		if err != nil {
+			slog.Error("DB connect failed", "error", err)
+			os.Exit(1)
+		}
+		defer database.Close()
+
+		userRepo := repository.NewUserRepository(database)
+		matchRepo := repository.NewMatchRepository(database)
+
+		user, err := resolveUser(context.Background(), userRepo)
+		if err != nil {
+			slog.Error("User not found", "error", err)
+			os.Exit(1)
+		}
+
+		if err := matchRepo.ClearMatches(context.Background(), user.ID); err != nil {
+			slog.Error("Failed to clear matches", "error", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("✅ Cleared all matches for user: %s (ID: %d)\n", user.Email, user.ID)
+	},
 }
 
 var matchCmd = &cobra.Command{
-	Use:   "match [user_id]",
-	Short: "Run AI matching for a user (default: 1)",
+	Use:     "match",
+	Short:   "Run AI matching for a user",
+	GroupID: "intel",
 	Run: func(cmd *cobra.Command, args []string) {
-		userID := 1 // Default to 1 for dev
-		if len(args) > 0 {
-			id, err := strconv.Atoi(args[0])
-			if err == nil {
-				userID = id
-			}
-		}
-
 		cfg, err := config.LoadConfig()
 		if err != nil {
 			slog.Error("Error loading config", "error", err)
@@ -48,18 +95,17 @@ var matchCmd = &cobra.Command{
 		matchRepo := repository.NewMatchRepository(database)
 		matcher := ai.NewMatcher(cfg.LLMURL, cfg.LLMKey, cfg.LLMModel)
 
-		// 1. Get User Narrative
-		user, err := userRepo.FindByID(context.Background(), userID)
+		user, err := resolveUser(context.Background(), userRepo)
 		if err != nil {
-			slog.Error("User not found", "id", userID)
-			return
+			slog.Error("User not found", "error", err)
+			os.Exit(1)
 		}
+
 		if user.Narrative == "" {
-			slog.Warn("User has no narrative defined", "id", userID)
+			slog.Warn("User has no narrative defined", "id", user.ID)
 			return
 		}
 
-		// 2. Get All Solicitations
 		sols, err := solRepo.List(context.Background())
 		if err != nil {
 			slog.Error("Failed to list solicitations", "error", err)
@@ -68,11 +114,7 @@ var matchCmd = &cobra.Command{
 
 		slog.Info("Starting Matching", "user", user.Email, "solicitations", len(sols))
 
-		// 3. Iterate and Match
 		for _, sol := range sols {
-			// Optional: Check if match already exists to skip?
-			// For now, re-match everything (expensive but simple)
-			
 			result, err := matcher.Match(user.Narrative, sol)
 			if err != nil {
 				slog.Error("Match failed", "sol_id", sol.ID, "error", err)

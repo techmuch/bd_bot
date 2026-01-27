@@ -25,8 +25,9 @@ func init() {
 }
 
 var taskCmd = &cobra.Command{
-	Use:   "task",
-	Short: "Manage development tasks",
+	Use:     "task",
+	Short:   "Manage development tasks",
+	GroupID: "dev",
 }
 
 var taskSyncCmd = &cobra.Command{

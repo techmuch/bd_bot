@@ -24,8 +24,9 @@ func init() {
 }
 
 var reqCmd = &cobra.Command{
-	Use:   "req",
-	Short: "Manage requirements documentation",
+	Use:     "req",
+	Short:   "Manage requirements documentation",
+	GroupID: "dev",
 }
 
 var reqExportCmd = &cobra.Command{

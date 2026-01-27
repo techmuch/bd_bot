@@ -33,8 +33,9 @@ func init() {
 }
 
 var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Manage configuration",
+	Use:     "config",
+	Short:   "Manage configuration",
+	GroupID: "core",
 }
 
 var initCmd = &cobra.Command{
