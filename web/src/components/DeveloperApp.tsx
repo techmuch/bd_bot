@@ -23,7 +23,6 @@ interface Comment {
 
 const TaskDetailView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const [task, setTask] = useState<Task | null>(null);
     const [comments, setComments] = useState<Comment[]>([]);
     const [plan, setPlan] = useState("");
@@ -61,8 +60,17 @@ const TaskDetailView: React.FC = () => {
                 body: JSON.stringify({ plan, plan_status: statusToSave }),
             });
             if (res.ok) {
-                setPlanStatus(statusToSave);
-                alert("Plan saved!");
+                if (newStatus && newStatus !== planStatus) {
+                    await fetch(`/api/tasks/${id}/comments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: `Status changed from ${planStatus} to ${newStatus}` }),
+                    });
+                    fetchDetail();
+                } else {
+                    setPlanStatus(statusToSave);
+                    alert("Plan saved!");
+                }
             }
         } finally {
             setIsSaving(false);
@@ -100,8 +108,12 @@ const TaskDetailView: React.FC = () => {
     };
 
     return (
-        <div style={{ display: 'flex', gap: '1.5rem', height: '80vh' }}>
-            <div className="chart-card" style={{ flex: 2, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
+            <Link to="/developer/tasks" className="btn-link" style={{ marginBottom: '1rem', width: 'fit-content', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                <ArrowLeft size={16} /> Back to Tasks
+            </Link>
+            <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+                <div className="chart-card" style={{ flex: 2, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)' }}>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
@@ -164,6 +176,7 @@ const TaskDetailView: React.FC = () => {
                     />
                     <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={!newComment.trim()}>Post Comment</button>
                 </form>
+            </div>
             </div>
         </div>
     );

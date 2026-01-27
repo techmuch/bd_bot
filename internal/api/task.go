@@ -16,7 +16,7 @@ func NewTaskHandler(repo *repository.TaskRepository) *TaskHandler {
 }
 
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.repo.List(r.Context(), false)
+	tasks, err := h.repo.List(r.Context(), false, false)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
