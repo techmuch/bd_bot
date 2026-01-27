@@ -4,6 +4,7 @@ bd_bot.exe
 
 # Config
 config.yaml
+*.log
 
 # Go
 vendor/
