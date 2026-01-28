@@ -120,7 +120,8 @@ To accelerate development using the internal task list:
 *   `joshua org list [--json]`: Manage organizations.
 *   `joshua req export/import`: Version requirements.md.
 *   `joshua task sync`: Sync tasks from requirements.md to DB.
-*   `joshua task list [--selected] [--json]`: List tasks (Markdown default).
+*   `joshua task list [--selected] [--needs-revision] [--json]`: List tasks.
+*   `joshua task update --id <ID> --file <JSON>`: Update task plan/status.
 *   `joshua feedback list [--new|--reviewed|--all]`: Manage feedback.
 *   `joshua feedback update --id <ID> --status <STATUS>`: Update feedback status.
 *   `joshua scraper run-now`: Manual scrape.
