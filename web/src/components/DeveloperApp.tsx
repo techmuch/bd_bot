@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { usePageContext } from '../context/ChatContext';
 import { Save, ArrowLeft, FileCode, CheckSquare, Square, MessageSquare, ThumbsUp, AlertCircle } from 'lucide-react';
 import { Link, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
@@ -49,6 +50,9 @@ const TaskDetailView: React.FC = () => {
     useEffect(() => {
         fetchDetail();
     }, [id]);
+
+    const contextStr = task ? `Viewing Task #${task.id}: ${task.description}. Status: ${task.plan_status}.` : "Loading task...";
+    usePageContext(contextStr);
 
     const handleSavePlan = async (newStatus?: string) => {
         setIsSaving(true);
@@ -206,6 +210,8 @@ const TaskList: React.FC = () => {
         fetchTasks();
     }, []);
 
+    usePageContext("Viewing Development Task List");
+
     const toggleSelection = async (e: React.MouseEvent, task: Task) => {
         e.stopPropagation();
         // Optimistic update
@@ -319,6 +325,8 @@ const RequirementsEditor: React.FC = () => {
     useEffect(() => {
         fetchVersions();
     }, []);
+
+    usePageContext("Viewing Requirements Editor");
 
     const fetchContent = async (id: number) => {
         const res = await fetch(`/api/requirements?version=${id}`);

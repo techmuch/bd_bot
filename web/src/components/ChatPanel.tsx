@@ -1,108 +1,108 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useChatContext } from '../context/ChatContext';
 import { MessageSquare, X, Send, ChevronRight, Bot } from 'lucide-react';
 
 interface Message {
-    role: 'user' | 'assistant';
-    content: string;
+	role: 'user' | 'assistant';
+	content: string;
 }
 
 interface ChatPanelProps {
-    isOpen: boolean;
-    onToggle: () => void;
+	isOpen: boolean;
+	onToggle: () => void;
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onToggle }) => {
-    const { user } = useAuth();
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState("");
-    const [isTyping, setIsTyping] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+	const { user } = useAuth();
+	const { viewContext } = useChatContext();
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [input, setInput] = useState("");
+	const [isTyping, setIsTyping] = useState(false);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	};
 
-    useEffect(() => {
-        if (isOpen) scrollToBottom();
-    }, [messages, isOpen]);
+	useEffect(() => {
+		if (isOpen) scrollToBottom();
+	}, [messages, isOpen]);
 
-    const handleSend = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || isTyping) return;
+	const handleSend = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!input.trim() || isTyping) return;
 
-        const userMsg: Message = { role: 'user', content: input };
-        const newMessages = [...messages, userMsg];
-        setMessages(newMessages);
-        setInput("");
-        setIsTyping(true);
+		const userMsg: Message = { role: 'user', content: input };
+		const newMessages = [...messages, userMsg];
+		setMessages(newMessages);
+		setInput("");
+		setIsTyping(true);
 
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: newMessages }),
-            });
+		try {
+			const response = await fetch('/api/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ message: userMsg.content, context: viewContext }),
+			});
 
-            if (!response.ok) throw new Error("Connection lost");
-            if (!response.body) throw new Error("No response body");
+			if (!response.ok) throw new Error("Connection lost");
+			if (!response.body) throw new Error("No response body");
 
-            // Create placeholder for assistant response
-            setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+			// Create placeholder for assistant response
+			setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder();
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
+				const chunk = decoder.decode(value, { stream: true });
+				const lines = chunk.split('\n');
 
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const jsonStr = line.slice(6);
-                            if (!jsonStr.trim()) continue;
-                            
-                            const data = JSON.parse(jsonStr);
-                            
-                            if (data.error) {
-                                throw new Error(data.error);
-                            }
+				for (const line of lines) {
+					if (line.startsWith('data: ')) {
+						try {
+							const jsonStr = line.slice(6);
+							if (!jsonStr.trim()) continue;
+							
+							const data = JSON.parse(jsonStr);
+							
+							if (data.error) {
+								throw new Error(data.error);
+							}
 
-                            if (data.content) {
-                                setMessages(prev => {
-                                    const msgs = [...prev];
-                                    const last = msgs[msgs.length - 1];
-                                    if (last.role === 'assistant') {
-                                        last.content += data.content;
-                                    }
-                                    return msgs;
-                                });
-                            }
-                        } catch (e) {
-                            console.error("Error parsing stream chunk", e);
-                        }
-                    }
-                }
-            }
+							if (data.content) {
+								setMessages(prev => {
+									const msgs = [...prev];
+									const last = msgs[msgs.length - 1];
+									if (last.role === 'assistant') {
+										last.content += data.content;
+									}
+									return msgs;
+								});
+							}
+						} catch (e) {
+							console.error("Error parsing stream chunk", e);
+						}
+					}
+				}
+			}
 
-        } catch (err) {
-            setMessages(prev => {
-                // If last message was empty assistant (streaming started but failed), update it. 
-                // Or append error.
-                const last = prev[prev.length - 1];
-                if (last.role === 'assistant' && last.content === '') {
-                    return [...prev.slice(0, -1), { role: 'assistant', content: "ERROR: UNABLE TO ESTABLISH CONNECTION WITH JOSHUA MAINCORE." }];
-                }
-                return [...prev, { role: 'assistant', content: "ERROR: UNABLE TO ESTABLISH CONNECTION WITH JOSHUA MAINCORE." }];
-            });
-        } finally {
-            setIsTyping(false);
-        }
-    };
+		} catch (err) {
+			setMessages(prev => {
+				const last = prev[prev.length - 1];
+				if (last.role === 'assistant' && last.content === '') {
+					return [...prev.slice(0, -1), { role: 'assistant', content: "ERROR: UNABLE TO ESTABLISH CONNECTION WITH JOSHUA MAINCORE." }];
+				}
+				return [...prev, { role: 'assistant', content: "ERROR: UNABLE TO ESTABLISH CONNECTION WITH JOSHUA MAINCORE." }];
+			});
+		} finally {
+			setIsTyping(false);
+		}
+	};
 
     if (!user) return null;
 

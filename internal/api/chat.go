@@ -2,22 +2,28 @@ package api
 
 import (
 	"bd_bot/internal/ai"
+	"bd_bot/internal/repository"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 type ChatHandler struct {
-	chatSvc *ai.ChatService
+	chatSvc   *ai.ChatService
+	userRepo  *repository.UserRepository
+	chatRepo  *repository.ChatRepository
 }
 
-func NewChatHandler(svc *ai.ChatService) *ChatHandler {
-	return &ChatHandler{chatSvc: svc}
+func NewChatHandler(svc *ai.ChatService, userRepo *repository.UserRepository, chatRepo *repository.ChatRepository) *ChatHandler {
+	return &ChatHandler{chatSvc: svc, userRepo: userRepo, chatRepo: chatRepo}
 }
 
 type ChatRequest struct {
-	Messages []ai.ChatMessage `json:"messages"`
+	Message string `json:"message"`
+	Context string `json:"context"`
 }
 
 func (h *ChatHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -26,22 +32,67 @@ func (h *ChatHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// We can't use json.NewDecoder directly on Body if we want to support streaming properly 
-	// because we need to set headers BEFORE reading the body if it takes time? 
-	// No, we read request body first (fast), then start streaming response.
-	
+	userID := r.Context().Value("user_id").(int)
+
 	var req ChatRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if len(req.Messages) == 0 {
-		http.Error(w, "No messages provided", http.StatusBadRequest)
+	if req.Message == "" {
+		http.Error(w, "No message provided", http.StatusBadRequest)
 		return
 	}
 
-	// Set SSE Headers
+	// 1. Fetch User
+	user, err := h.userRepo.FindByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusInternalServerError)
+		return
+	}
+
+	// 2. Fetch History (Last 10 turns = 20 messages)
+	history, err := h.chatRepo.GetHistory(r.Context(), userID, 20)
+	if err != nil {
+		slog.Error("Failed to fetch history", "error", err)
+		// Continue without history
+	}
+
+	// 3. Construct Messages
+	var messages []ai.ChatMessage
+
+	// System Prompt
+	systemMsg := fmt.Sprintf(`You are Joshua, a business intelligence system designed for GTRI (Georgia Tech Research Institute).
+User: %s (%s)
+Role: %s
+Organization: %s
+
+Current View Context:
+%s
+
+Instructions:
+- Provide helpful, context-aware responses.
+- Use the provided View Context to answer specific questions about what the user is seeing.
+- Maintain professional tone.
+`, user.FullName, user.Email, user.Role, user.Organization, req.Context)
+
+	messages = append(messages, ai.ChatMessage{Role: "system", Content: systemMsg})
+
+	// History
+	for _, msg := range history {
+		messages = append(messages, ai.ChatMessage{Role: msg.Role, Content: msg.Content})
+	}
+
+	// Current User Message
+	messages = append(messages, ai.ChatMessage{Role: "user", Content: req.Message})
+
+	// 4. Save User Message to DB
+	if err := h.chatRepo.SaveMessage(r.Context(), userID, "user", req.Message); err != nil {
+		slog.Error("Failed to save user message", "error", err)
+	}
+
+	// 5. Stream Response
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -52,10 +103,10 @@ func (h *ChatHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.chatSvc.ChatStream(req.Messages, func(chunk string) error {
-		// Wrap content in JSON object for frontend convenience
-		// payload: { "content": "..." }
-		// SSE format: data: <payload>\n\n
+	var fullResponse strings.Builder
+
+	err = h.chatSvc.ChatStream(messages, func(chunk string) error {
+		fullResponse.WriteString(chunk)
 		payloadBytes, _ := json.Marshal(map[string]string{"content": chunk})
 		fmt.Fprintf(w, "data: %s\n\n", payloadBytes)
 		flusher.Flush()
@@ -63,13 +114,18 @@ func (h *ChatHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		// Log error, but we can't send a 500 if we already started streaming headers.
-		// In a production app, we might send a special error event.
 		slog.Error("Chat stream failed", "error", err)
-		
-		// Optional: Send error event
 		errPayload, _ := json.Marshal(map[string]string{"error": err.Error()})
 		fmt.Fprintf(w, "data: %s\n\n", errPayload)
 		flusher.Flush()
+	}
+
+	// 6. Save AI Response to DB
+	if fullResponse.Len() > 0 {
+		// Use a detached context for saving to ensure it completes even if request cancels?
+		// For simplicity, using request context, but ideally background.
+		if err := h.chatRepo.SaveMessage(context.Background(), userID, "assistant", fullResponse.String()); err != nil {
+			slog.Error("Failed to save assistant message", "error", err)
+		}
 	}
 }

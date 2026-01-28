@@ -16,6 +16,7 @@ func NewRouter(
 	iradRepo *repository.IRADRepository,
 	chatSvc *ai.ChatService,
 	auditRepo *repository.AuditRepository,
+	chatRepo *repository.ChatRepository,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
@@ -26,7 +27,7 @@ func NewRouter(
 	feedbackHandler := &FeedbackHandler{repo: feedbackRepo}
 	reqHandler := &RequirementsHandler{repo: reqRepo, userRepo: userRepo, taskRepo: taskRepo}
 	taskHandler := NewTaskHandler(taskRepo)
-	chatHandler := NewChatHandler(chatSvc)
+	chatHandler := NewChatHandler(chatSvc, userRepo, chatRepo)
 	iradHandler := NewIRADHandler(iradRepo, userRepo)
 
 	// Solicitations

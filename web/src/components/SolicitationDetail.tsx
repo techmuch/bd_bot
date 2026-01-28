@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import type { Solicitation } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { usePageContext } from '../context/ChatContext';
 import { ArrowLeft, ExternalLink, FileText, User, Star, Flag, Share2, Archive, X } from 'lucide-react';
 
 interface Claim {
@@ -151,6 +152,9 @@ const SolicitationDetail: React.FC = () => {
     const isLead = myClaim?.claim_type === 'lead';
     const isInterested = myClaim?.claim_type === 'interested';
     const isArchived = myClaim?.archived || false;
+
+    const contextStr = solicitation ? `Viewing Solicitation: ${solicitation.title} (${solicitation.agency}). Status: Lead=${leadClaim?.user.full_name || 'None'}.` : "Loading solicitation...";
+    usePageContext(contextStr);
 
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '4rem' }}>

@@ -11,6 +11,7 @@ import StrategyApp from './components/StrategyApp'
 import ChatPanel from './components/ChatPanel'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ChatProvider } from './context/ChatContext'
 import { LoginButton } from './components/LoginButton'
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
@@ -142,7 +143,9 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <AppContent />
+          <ChatProvider>
+            <AppContent />
+          </ChatProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

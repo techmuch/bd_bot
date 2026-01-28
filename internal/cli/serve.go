@@ -46,10 +46,11 @@ var serveCmd = &cobra.Command{
 		taskRepo := repository.NewTaskRepository(database)
 		iradRepo := repository.NewIRADRepository(database)
 		auditRepo := repository.NewAuditRepository(database)
+		chatRepo := repository.NewChatRepository(database)
 		chatSvc := ai.NewChatService(cfg.LLMURL, cfg.LLMKey, cfg.LLMModel)
 
 		// 2. Router
-		mux := api.NewRouter(solRepo, userRepo, matchRepo, feedbackRepo, reqRepo, taskRepo, iradRepo, chatSvc, auditRepo)
+		mux := api.NewRouter(solRepo, userRepo, matchRepo, feedbackRepo, reqRepo, taskRepo, iradRepo, chatSvc, auditRepo, chatRepo)
 
 		// 3. Frontend
 		dist, err := fs.Sub(web.DistFS, "dist")

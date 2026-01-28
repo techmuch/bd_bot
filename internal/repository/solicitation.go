@@ -341,3 +341,44 @@ func (r *SolicitationRepository) UpsertClaim(ctx context.Context, userID, solID 
 		return err
 	}
 	
+	func (r *SolicitationRepository) Search(ctx context.Context, query string) ([]scraper.Solicitation, error) {
+	
+		queryStr := `
+	
+			SELECT id, source_id, title, description, agency, due_date, url
+	
+			FROM solicitations
+	
+			WHERE text_search @@ plainto_tsquery('english', 	
+	)
+	
+			ORDER BY ts_rank(text_search, plainto_tsquery('english', 	
+	)) DESC
+	
+			LIMIT 5
+	
+		`
+	
+		rows, err := r.db.QueryContext(ctx, queryStr, query)
+	
+	
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+	
+		var results []scraper.Solicitation
+		for rows.Next() {
+			var s scraper.Solicitation
+			var dueDate sql.NullTime
+			if err := rows.Scan(&s.ID, &s.SourceID, &s.Title, &s.Description, &s.Agency, &dueDate, &s.URL); err != nil {
+				return nil, err
+			}
+			if dueDate.Valid {
+				s.DueDate = dueDate.Time
+			}
+			results = append(results, s)
+		}
+		return results, nil
+	}
+	
