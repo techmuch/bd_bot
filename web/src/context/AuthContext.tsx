@@ -10,6 +10,7 @@ interface User {
     auth_provider?: string;
     avatar_url?: string;
     organization_name?: string;
+    match_threshold?: number;
 }
 
 interface AuthContextType {

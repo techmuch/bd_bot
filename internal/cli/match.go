@@ -123,6 +123,11 @@ var matchCmd = &cobra.Command{
 
 			slog.Info("Match Result", "sol", sol.Title, "score", result.Score)
 
+			if result.Score < user.MatchThreshold {
+				slog.Info("Skipping match below threshold", "score", result.Score, "threshold", user.MatchThreshold)
+				continue
+			}
+
 			if err := matchRepo.Upsert(context.Background(), user.ID, sol.ID, result.Score, result.Explanation); err != nil {
 				slog.Error("Failed to save match", "error", err)
 			}
