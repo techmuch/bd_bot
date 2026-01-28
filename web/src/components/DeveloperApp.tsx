@@ -107,6 +107,8 @@ const TaskDetailView: React.FC = () => {
         }
     };
 
+    const isPlanEmpty = !plan || !plan.trim();
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
             <Link to="/developer/tasks" className="btn-link" style={{ marginBottom: '1rem', width: 'fit-content', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
@@ -128,13 +130,13 @@ const TaskDetailView: React.FC = () => {
                         <button onClick={() => handleSavePlan('draft')} className="btn-outline" disabled={isSaving} title="Save as Draft">
                             <Save size={16} /> Save
                         </button>
-                        <button onClick={() => handleSavePlan('review')} className="btn-primary" disabled={isSaving} style={{ background: 'var(--warning-color)', color: 'var(--bg-card)' }}>
+                        <button onClick={() => handleSavePlan('review')} className="btn-primary" disabled={isSaving || isPlanEmpty} style={{ background: 'var(--warning-color)', color: 'var(--bg-card)', opacity: isPlanEmpty ? 0.5 : 1 }}>
                             Submit for Review
                         </button>
-                        <button onClick={() => handleSavePlan('approved')} className="btn-primary" disabled={isSaving} style={{ background: 'var(--success-color)' }}>
+                        <button onClick={() => handleSavePlan('approved')} className="btn-primary" disabled={isSaving || isPlanEmpty} style={{ background: 'var(--success-color)', opacity: isPlanEmpty ? 0.5 : 1 }}>
                             <ThumbsUp size={16} /> Approve
                         </button>
-                        <button onClick={() => handleSavePlan('revision')} className="btn-primary" disabled={isSaving} style={{ background: 'var(--error-color)' }}>
+                        <button onClick={() => handleSavePlan('revision')} className="btn-primary" disabled={isSaving || isPlanEmpty} style={{ background: 'var(--error-color)', opacity: isPlanEmpty ? 0.5 : 1 }}>
                             <AlertCircle size={16} /> Request Revision
                         </button>
                     </div>
@@ -224,7 +226,12 @@ const TaskList: React.FC = () => {
     return (
         <div className="chart-card" style={{ padding: '0', overflow: 'hidden' }}>
             <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)' }}>
-                <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Development Tasks</h3>
+                <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                        <ArrowLeft size={16} /> Back to Hub
+                    </Link>
+                    <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Development Tasks</h3>
+                </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     <input type="checkbox" checked={showCompleted} onChange={() => setShowCompleted(!showCompleted)} />
                     Show Completed
@@ -268,7 +275,7 @@ const TaskList: React.FC = () => {
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <span className="badge" style={{ background: task.plan_status === 'approved' ? 'var(--success-color)' : (task.plan_status === 'none' ? 'var(--bg-input)' : 'var(--warning-color)'), color: task.plan_status === 'none' ? 'var(--text-secondary)' : 'white' }}>
-                                            {task.plan_status || 'none'}
+                                            {task.plan_status === 'none' ? 'Unplanned' : task.plan_status}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
@@ -351,12 +358,6 @@ const DeveloperApp: React.FC = () => {
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
-                    <ArrowLeft size={16} /> Back to Hub
-                </Link>
-            </div>
-
             <Routes>
                 <Route path="tasks" element={<TaskList />} />
                 <Route path="tasks/:id" element={<TaskDetailView />} />
