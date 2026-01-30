@@ -13,7 +13,6 @@ interface Claim {
 	created_at: string;
 	archived: boolean;
 	user: {
-
         id: number;
         full_name: string;
         email: string;
@@ -75,6 +74,11 @@ const SolicitationDetail: React.FC = () => {
     useEffect(() => {
         fetchDetail();
     }, [id]);
+
+    // Context Hook - Always called
+    const leadClaimForContext = solicitation?.claims?.find(c => c.claim_type === 'lead');
+    const contextStr = solicitation ? `Viewing Solicitation: ${solicitation.title} (${solicitation.agency}). Status: Lead=${leadClaimForContext?.user.full_name || 'None'}.` : "Loading solicitation...";
+    usePageContext(contextStr);
 
     const handlePostComment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -152,9 +156,6 @@ const SolicitationDetail: React.FC = () => {
     const isLead = myClaim?.claim_type === 'lead';
     const isInterested = myClaim?.claim_type === 'interested';
     const isArchived = myClaim?.archived || false;
-
-    const contextStr = solicitation ? `Viewing Solicitation: ${solicitation.title} (${solicitation.agency}). Status: Lead=${leadClaim?.user.full_name || 'None'}.` : "Loading solicitation...";
-    usePageContext(contextStr);
 
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '4rem' }}>
