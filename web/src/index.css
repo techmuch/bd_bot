@@ -123,6 +123,34 @@
   color-scheme: dark;
 }
 
+[data-theme='valentine'] {
+  --bg-body: #fff0f3;
+  --bg-card: #ffffff;
+  --bg-header: #ffccd5;
+  --bg-input: #fff0f3;
+
+  --text-primary: #800f2f;
+  --text-secondary: #c9184a;
+  --text-body: #590d22;
+  --text-brand: #ff4d6d;
+
+  --border-color: #ffb3c1;
+  --border-input: #ff758f;
+
+  --primary-color: #ff4d6d;
+  --text-on-primary: #ffffff;
+  --primary-light: #ffccd5;
+
+  --slider-track: #ffccd5;
+  --slider-thumb: #ff4d6d;
+
+  --success-color: #27ae60;
+  --error-color: #e74c3c;
+  --warning-color: #f1c40f;
+
+  color-scheme: light;
+}
+
 body {
   margin: 0;
   padding: 0;

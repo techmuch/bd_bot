@@ -7,6 +7,7 @@ import (
 	"bd_bot/internal/db"
 	"bd_bot/internal/repository"
 	"bd_bot/web"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -15,70 +16,156 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+
+	serveHost string
+
+	servePort int
+
+)
+
+
+
 func init() {
+
+	serveCmd.Flags().StringVar(&serveHost, "host", "127.0.0.1", "Network interface to bind to (use 0.0.0.0 for all)")
+
+	serveCmd.Flags().IntVarP(&servePort, "port", "p", 8080, "Port to listen on")
+
 	rootCmd.AddCommand(serveCmd)
+
 }
+
+
 
 var serveCmd = &cobra.Command{
+
 	Use:     "serve",
+
 	Short:   "Start the BD_Bot web portal",
+
 	GroupID: "core",
+
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cfg, err := config.LoadConfig()
+
 		if err != nil {
+
 			slog.Error("Error loading config", "error", err)
+
 			os.Exit(1)
+
 		}
+
+
 
 		// 1. Database
+
 		database, err := db.Connect(cfg.DatabaseURL)
+
 		if err != nil {
+
 			slog.Error("Failed to connect to database", "error", err)
+
 			os.Exit(1)
+
 		}
+
 		defer database.Close()
 
+
+
 		solRepo := repository.NewSolicitationRepository(database)
+
 		userRepo := repository.NewUserRepository(database)
+
 		matchRepo := repository.NewMatchRepository(database)
+
 		feedbackRepo := repository.NewFeedbackRepository(database)
+
 		reqRepo := repository.NewRequirementsRepository(database)
+
 		taskRepo := repository.NewTaskRepository(database)
+
 		iradRepo := repository.NewIRADRepository(database)
+
 		auditRepo := repository.NewAuditRepository(database)
+
 		chatRepo := repository.NewChatRepository(database)
+
 		chatSvc := ai.NewChatService(cfg.LLMURL, cfg.LLMKey, cfg.LLMModel)
 
+
+
 		// 2. Router
+
 		mux := api.NewRouter(solRepo, userRepo, matchRepo, feedbackRepo, reqRepo, taskRepo, iradRepo, chatSvc, auditRepo, chatRepo)
 
+
+
 		// 3. Frontend
+
 		dist, err := fs.Sub(web.DistFS, "dist")
+
 		if err != nil {
+
 			slog.Error("Error accessing embedded files", "error", err)
+
 			os.Exit(1)
+
 		}
+
+
 
 		// Serve frontend for all non-API routes
+
 		// We use a custom handler to support client-side routing (SPA)
+
 		fsHandler := http.FileServer(http.FS(dist))
+
 		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
 			// Check if file exists in dist
+
 			f, err := dist.Open(r.URL.Path[1:])
+
 			if err == nil {
+
 				defer f.Close()
+
 				fsHandler.ServeHTTP(w, r)
+
 				return
+
 			}
+
 			// Fallback to index.html for SPA routing
+
 			r.URL.Path = "/"
+
 			fsHandler.ServeHTTP(w, r)
+
 		})
 
-		slog.Info("Starting server on :8080")
-		if err := http.ListenAndServe(":8080", mux); err != nil {
+
+
+		addr := fmt.Sprintf("%s:%d", serveHost, servePort)
+
+		fmt.Printf("🚀 JOSHUA server starting on http://%s\n", addr)
+
+		slog.Info("Starting server", "addr", addr)
+
+		if err := http.ListenAndServe(addr, mux); err != nil {
+
 			slog.Error("Server error", "error", err)
+
 			os.Exit(1)
+
 		}
+
 	},
+
 }
+
+

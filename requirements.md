@@ -61,6 +61,7 @@ The CLI leverages the Charmbracelet ecosystem for a premium administrative exper
     *   **WOPR (Default):** A "Phosphor-Modernism" aesthetic with Amber/Green terminals on deep Midnight Ebony backgrounds.
     *   **Light/Dark:** Standard variants for traditional business use.
     *   **Forest:** A calming green-based palette.
+    *   **Valentine:** A festive red and pink palette for special occasions.
 *   **Terminal Awareness:** Graceful detection with fallback to ASCII; suggests upgrade if a basic terminal is detected.
 *   **Help System:** Dedicated help key (`?`) in all TUI views for context-sensitive documentation.
 
@@ -192,6 +193,7 @@ To ensure a structured and manageable implementation, development will follow th
                     *   [x] Rebranding to JOSHUA and WOPR Theme implementation.
         *   [x] Implement Interactive Chat Interface (Streaming).
         *   [ ] Finalize CI/CD pipelines and comprehensive unit testing.
+        *   [x] Develop a valentines theme based on reds and pinks
 
 ### Phase 6: Strategic Growth (IRAD)
 

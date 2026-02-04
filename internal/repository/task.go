@@ -56,10 +56,13 @@ func (r *TaskRepository) SyncTasksFromMarkdown(ctx context.Context, content stri
 	return count, nil
 }
 
-func (r *TaskRepository) List(ctx context.Context, filterSelected bool) ([]Task, error) {
-	query := `SELECT id, description, is_completed, is_selected, created_at, updated_at, plan, plan_status FROM tasks`
+func (r *TaskRepository) List(ctx context.Context, filterSelected bool, filterNeedsRevision bool) ([]Task, error) {
+	query := `SELECT id, description, is_completed, is_selected, created_at, updated_at, plan, plan_status FROM tasks WHERE 1=1`
 	if filterSelected {
-		query += ` WHERE is_selected = TRUE AND is_completed = FALSE`
+		query += ` AND is_selected = TRUE AND is_completed = FALSE`
+	}
+	if filterNeedsRevision {
+		query += ` AND (plan_status = 'none' OR plan_status = 'revision' OR plan_status IS NULL)`
 	}
 	query += ` ORDER BY id ASC`
 	rows, err := r.db.QueryContext(ctx, query)

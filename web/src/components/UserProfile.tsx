@@ -7,25 +7,25 @@ import MarkdownEditor from './MarkdownEditor';
 const UserProfile: React.FC = () => {
     const { user, refreshUser } = useAuth();
     const { theme, setTheme } = useTheme();
-    
+
     // Profile State
     const [fullName, setFullName] = useState(user?.full_name || "");
     const [email, setEmail] = useState(user?.email || "");
     const [orgName, setOrgName] = useState(user?.organization_name || "");
     const [matchThreshold, setMatchThreshold] = useState(user?.match_threshold || 75);
     const [orgSuggestions, setOrgSuggestions] = useState<string[]>([]);
-    
+
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar_url || null);
-    const [profileStatus, setProfileStatus] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+    const [profileStatus, setProfileStatus] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Password State
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [passwordStatus, setPasswordStatus] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
-    
+    const [passwordStatus, setPasswordStatus] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
+
     // Narrative State
     const [versions, setVersions] = useState<any[]>([]);
 
@@ -52,7 +52,7 @@ const UserProfile: React.FC = () => {
             setAvatarPreview(user.avatar_url || null);
             fetchVersions();
         }
-        
+
         // Fetch orgs
         fetch('/api/organizations')
             .then(res => res.json())
@@ -92,9 +92,9 @@ const UserProfile: React.FC = () => {
             const res = await fetch('/api/user/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email: email, 
-                    full_name: fullName, 
+                body: JSON.stringify({
+                    email: email,
+                    full_name: fullName,
                     avatar_url: avatarUrl,
                     organization_name: orgName,
                     match_threshold: matchThreshold
@@ -161,32 +161,32 @@ const UserProfile: React.FC = () => {
             body: JSON.stringify({ narrative: text }),
         });
         if (!res.ok) throw new Error("Failed to save narrative");
-        await refreshUser(); 
+        await refreshUser();
         fetchVersions();
     };
 
     return (
-        <div className="solicitation-list" style={{maxWidth: '900px', margin: '0 auto'}}>
-            <div style={{borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '2rem'}}>
+        <div className="solicitation-list" style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '2rem' }}>
                 <h2>User Profile & Settings</h2>
             </div>
 
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem'}}>
-                
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+
                 {/* --- Profile Info & Avatar --- */}
                 <div className="chart-card">
-                    <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem'}}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
                         <User size={20} color="var(--text-primary)" />
-                        <h3 style={{margin: 0, color: 'var(--text-primary)'}}>Public Profile</h3>
+                        <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Public Profile</h3>
                     </div>
 
                     <form onSubmit={handleProfileUpdate}>
                         {/* Avatar Upload */}
-                        <div style={{textAlign: 'center', marginBottom: '1.5rem', position: 'relative'}}>
-                            <div 
+                        <div style={{ textAlign: 'center', marginBottom: '1.5rem', position: 'relative' }}>
+                            <div
                                 style={{
-                                    width: '100px', height: '100px', borderRadius: '50%', 
-                                    background: 'var(--primary-light)', color: 'var(--primary-color)', 
+                                    width: '100px', height: '100px', borderRadius: '50%',
+                                    background: 'var(--primary-light)', color: 'var(--primary-color)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     margin: '0 auto', overflow: 'hidden', border: '3px solid var(--bg-card)',
                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)', cursor: 'pointer',
@@ -195,11 +195,11 @@ const UserProfile: React.FC = () => {
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 {avatarPreview ? (
-                                    <img src={avatarPreview} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                                    <img src={avatarPreview} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                     <User size={50} />
                                 )}
-                                
+
                                 {/* Overlay */}
                                 <div style={{
                                     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -209,23 +209,23 @@ const UserProfile: React.FC = () => {
                                     <Camera size={16} color="white" />
                                 </div>
                             </div>
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                onChange={handleFileChange} 
-                                style={{display: 'none'}} 
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                style={{ display: 'none' }}
                                 accept="image/*"
                             />
-                            <p style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem'}}>Click to upload</p>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Click to upload</p>
                         </div>
 
                         {/* Fields */}
-                        <div style={{marginBottom: '1rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)'}}>Organization</label>
-                            <input 
-                                type="text" 
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)' }}>Organization</label>
+                            <input
+                                type="text"
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={orgName}
                                 onChange={(e) => setOrgName(e.target.value)}
                                 list="org-suggestions"
@@ -236,58 +236,45 @@ const UserProfile: React.FC = () => {
                             </datalist>
                         </div>
 
-                        <div style={{marginBottom: '1rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)'}}>Full Name</label>
-                            <input 
-                                type="text" 
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)' }}>Full Name</label>
+                            <input
+                                type="text"
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                                 required
                             />
                         </div>
-                        <div style={{marginBottom: '1.5rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)'}}>Email Address</label>
-                            <input 
-                                type="email" 
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)' }}>Email Address</label>
+                            <input
+                                type="email"
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
 
-                        {/* Match Threshold */}
-                        <div style={{marginBottom: '1rem'}}>
-                            <label style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-body)'}}>
-                                <span>Match Threshold (Minimum Score)</span>
-                                <span style={{fontWeight: 'bold', color: 'var(--primary-color)'}}>{matchThreshold}</span>
-                            </label>
-                            <input 
-                                type="range" min="0" max="100" 
-                                value={matchThreshold} 
-                                onChange={(e) => setMatchThreshold(parseInt(e.target.value))}
-                                style={{width: '100%'}}
-                            />
-                        </div>
-
                         {/* Theme Selector */}
-                        <div style={{marginBottom: '1.5rem'}}>
-                            <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-body)'}}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-body)' }}>
                                 <Palette size={16} /> Theme
                             </label>
-                            <select 
+                            <select
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={theme}
                                 onChange={(e) => setTheme(e.target.value as any)}
                             >
-                                <option value="light">Light (Default)</option>
+                                <option value="light">Light</option>
                                 <option value="dark">Dark Mode</option>
                                 <option value="forest">Forest</option>
                                 <option value="wopr">WOPR (Joshua)</option>
+                                <option value="valentine">Valentine</option>
                             </select>
                         </div>
 
@@ -301,11 +288,11 @@ const UserProfile: React.FC = () => {
                             </div>
                         )}
 
-                        <button 
-                            type="submit" 
-                            className="btn-primary" 
+                        <button
+                            type="submit"
+                            className="btn-primary"
                             disabled={isSubmitting}
-                            style={{width: '100%', justifyContent: 'center'}}
+                            style={{ width: '100%', justifyContent: 'center' }}
                         >
                             <Save size={18} /> Save Profile
                         </button>
@@ -314,40 +301,40 @@ const UserProfile: React.FC = () => {
 
                 {/* --- Change Password --- */}
                 <div className="chart-card">
-                    <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem'}}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
                         <Lock size={20} color="var(--text-primary)" />
-                        <h3 style={{margin: 0, color: 'var(--text-primary)'}}>Security</h3>
+                        <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Security</h3>
                     </div>
 
                     <form onSubmit={handlePasswordChange}>
-                        <div style={{marginBottom: '1rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)'}}>Current Password</label>
-                            <input 
-                                type="password" 
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)' }}>Current Password</label>
+                            <input
+                                type="password"
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={oldPassword}
                                 onChange={(e) => setOldPassword(e.target.value)}
                                 required
                             />
                         </div>
-                        <div style={{marginBottom: '1rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)'}}>New Password</label>
-                            <input 
-                                type="password" 
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)' }}>New Password</label>
+                            <input
+                                type="password"
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
                             />
                         </div>
-                        <div style={{marginBottom: '1.5rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)'}}>Confirm New Password</label>
-                            <input 
-                                type="password" 
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-body)' }}>Confirm New Password</label>
+                            <input
+                                type="password"
                                 className="search-input"
-                                style={{border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box'}}
+                                style={{ border: '1px solid var(--border-input)', padding: '0.75rem', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
@@ -364,11 +351,11 @@ const UserProfile: React.FC = () => {
                             </div>
                         )}
 
-                        <button 
-                            type="submit" 
-                            className="btn-primary" 
+                        <button
+                            type="submit"
+                            className="btn-primary"
                             disabled={isSubmitting}
-                            style={{width: '100%', justifyContent: 'center'}}
+                            style={{ width: '100%', justifyContent: 'center' }}
                         >
                             <Lock size={18} /> Update Password
                         </button>
@@ -377,17 +364,34 @@ const UserProfile: React.FC = () => {
             </div>
 
             {/* --- Narrative Editor --- */}
-            <div className="chart-card" style={{padding: '2rem'}}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem'}}>
+            <div className="chart-card" style={{ padding: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                     <FileText size={20} color="var(--text-primary)" />
-                    <h3 style={{margin: 0, color: 'var(--text-primary)'}}>Business Capability Narrative</h3>
+                    <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Business Capability Narrative</h3>
                 </div>
-                
-                <p className="text-muted" style={{marginBottom: '1.5rem', lineHeight: '1.5'}}>
-                    Describe your organization's core competencies, past performance, and value proposition. 
+
+                <p className="text-muted" style={{ marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                    Describe your organization's core competencies, past performance, and value proposition.
                     The AI will use this narrative to find the best matching opportunities for you.
                 </p>
-                
+
+                {/* Match Threshold Slider */}
+                <div style={{ marginBottom: '2rem', maxWidth: '400px' }}>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-body)', fontSize: '0.9rem', fontWeight: 600 }}>
+                        <span>AI Match Threshold (Minimum Score)</span>
+                        <span style={{ color: 'var(--primary-color)' }}>{matchThreshold}</span>
+                    </label>
+                    <input
+                        type="range" min="0" max="100"
+                        value={matchThreshold}
+                        onChange={(e) => setMatchThreshold(parseInt(e.target.value))}
+                        style={{ width: '100%' }}
+                    />
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
+                        Opportunities scored below this value by the AI will be filtered out.
+                    </p>
+                </div>
+
                 <MarkdownEditor
                     initialContent={user.narrative || ""}
                     onSave={handleNarrativeSave}
