@@ -1,10 +1,12 @@
 # Binaries
 /bd_bot
+/joshua
 bd_bot.exe
 
 # Config
 config.yaml
 *.log
+*.sql
 
 # Go
 vendor/
